@@ -9,20 +9,19 @@ import Foundation
 import CoreData
 
 class TaskListViewModel: NSObject, ObservableObject {
-    
     // MARK: - Properties
-    private let coreDataService: CoreDataService
-    private let fetchController: NSFetchedResultsController<Item>
+    private let coreDataService: CoreDataServiceProtocol
+    private let fetchController: NSFetchedResultsController<TaskEntity>
     
+    @Published var tasks: [Task] = []
     @Published var errorMessage: String?
-    @Published var items: [Item] = []
     
     // MARK: - Initialization
-    override init() {
-        self.coreDataService = CoreDataService.shared
+    init(coreDataService: CoreDataServiceProtocol) {
+        self.coreDataService = coreDataService
         
-        let request: NSFetchRequest<Item> = Item.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)]
+        let request: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
         
         self.fetchController = NSFetchedResultsController(
             fetchRequest: request,
@@ -34,34 +33,36 @@ class TaskListViewModel: NSObject, ObservableObject {
         super.init()
         
         self.fetchController.delegate = self
-        self.loadItems()
+        self.loadTasks()
     }
     
     // MARK: - Public Methods
     func addTask() {
-        let newItem = coreDataService.createItem()
-        newItem.timestamp = Date()
-        
+        let task = Task(title: "New Task")
         do {
+            let taskEntity = coreDataService.createTask()
+            taskEntity.update(from: task)
             try coreDataService.saveContext()
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
-    func deleteTask(_ task: Item) {
+    func deleteTask(_ task: Task) {
         do {
-            try coreDataService.delete(task)
+            if let taskToDelete = fetchController.fetchedObjects?.first(where: { $0.id == task.id }) {
+                try coreDataService.delete(taskToDelete)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
     // MARK: - Private Methods
-    private func loadItems() {
+    private func loadTasks() {
         do {
             try fetchController.performFetch()
-            items = fetchController.fetchedObjects ?? []
+            tasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -71,6 +72,6 @@ class TaskListViewModel: NSObject, ObservableObject {
 // MARK: - NSFetchedResultsControllerDelegate
 extension TaskListViewModel: NSFetchedResultsControllerDelegate {
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        items = controller.fetchedObjects as? [Item] ?? []
+        loadTasks()
     }
 }

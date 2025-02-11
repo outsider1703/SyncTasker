@@ -9,13 +9,14 @@ import SwiftUI
 
 @main
 struct SyncTaskerApp: App {
-
-    let coreDataService = CoreDataService.shared
+    // MARK: - Properties
+    private let container = DIContainer.shared
     
+    // MARK: - Body
     var body: some Scene {
         WindowGroup {
-            TaskListView()
-                .environment(\.managedObjectContext, coreDataService.viewContext)
+            TaskListView(viewModel: container.makeTaskListViewModel(), container: container)
+                .environment(\.managedObjectContext, container.coreDataService.viewContext)
         }
     }
 }

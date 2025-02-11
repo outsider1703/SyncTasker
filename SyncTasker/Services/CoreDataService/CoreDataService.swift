@@ -9,9 +9,10 @@ import CoreData
 
 protocol CoreDataServiceProtocol {
     var viewContext: NSManagedObjectContext { get }
-    func createItem() -> Item
+    func createTask() -> TaskEntity
     func saveContext() throws
     func delete(_ object: NSManagedObject) throws
+    func fetchTasks() throws -> [TaskEntity]
 }
 
 // MARK: - Error Handling
@@ -51,8 +52,8 @@ class CoreDataService: CoreDataServiceProtocol {
     }
     
     // MARK: - CoreDataServiceProtocol
-    func createItem() -> Item {
-        return Item(context: viewContext)
+    func createTask() -> TaskEntity {
+        return TaskEntity(context: viewContext)
     }
     
     func saveContext() throws {
@@ -71,6 +72,17 @@ class CoreDataService: CoreDataServiceProtocol {
             try saveContext()
         } catch {
             throw CoreDataError.deleteFailed(error)
+        }
+    }
+    
+    func fetchTasks() throws -> [TaskEntity] {
+        let request = NSFetchRequest<TaskEntity>(entityName: "TaskEntity")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
+        
+        do {
+            return try viewContext.fetch(request)
+        } catch {
+            throw CoreDataError.fetchFailed(error)
         }
     }
 }
