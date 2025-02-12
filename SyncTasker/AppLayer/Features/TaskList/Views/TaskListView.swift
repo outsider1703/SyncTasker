@@ -9,6 +9,7 @@ import SwiftUI
 import CoreData
 
 // MARK: - Constants
+
 private enum Constants {
     static let navigationTitle = "Tasks"
     static let errorTitle = "Error"
@@ -18,28 +19,50 @@ private enum Constants {
     static let addIcon = "plus"
     static let deleteIcon = "trash"
     static let selectTask = "Select a task"
+    static let sortTitle = "Sort By"
+    static let filterTitle = "Filter"
+    static let searchPlaceholder = "Search tasks..."
+    static let groupTitle = "Group By"
+    static let statisticsTitle = "Statistics"
 }
 
 struct TaskListView: View {
+    
     // MARK: - Properties
+    
     @StateObject var viewModel: TaskListViewModel
     private let container: DIContainer
+    @State private var showingStats = false
     
     // MARK: - Initialization
+    
     init(viewModel: TaskListViewModel, container: DIContainer) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.container = container
     }
     
     // MARK: - Body
+    
     var body: some View {
         NavigationView {
-            mainListView
-                .navigationTitle(Constants.navigationTitle)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) { EditButton() }
-                    ToolbarItem { addButton }
+            VStack(spacing: 0) {
+                if showingStats {
+                    TaskStatisticsView(statistics: viewModel.statistics)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
+                
+                filterBar
+                mainListView
+            }
+            .searchable(text: $viewModel.searchText, prompt: Constants.searchPlaceholder)
+            .navigationTitle(Constants.navigationTitle)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(Constants.statisticsTitle) { withAnimation { showingStats.toggle() } }
+                }
+                ToolbarItem(placement: .navigationBarTrailing) { EditButton() }
+                ToolbarItem { addButton }
+            }
             Text(Constants.selectTask)
         }
         .alert(Constants.errorTitle, isPresented: Binding(
@@ -53,17 +76,41 @@ struct TaskListView: View {
     }
     
     // MARK: - Subviews
+    
+    private var filterBar: some View {
+        VStack(spacing: Theme.Layout.spacing / 2) {
+            Picker(Constants.groupTitle, selection: $viewModel.selectedGrouping) {
+                ForEach(TaskGroupType.allCases, id: \.self) { group in
+                    Text(group.title).tag(group)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+        }
+        .padding(.vertical, Theme.Layout.padding / 2)
+        .background(Theme.Colors.background)
+    }
+    
     private var mainListView: some View {
         List {
-            ForEach(viewModel.tasks) { task in
-                TaskRowView(task: task,
-                           container: container,
-                           onDelete: { viewModel.deleteTask(task) })
-            }
-            .onDelete { indexSet in
-                indexSet.forEach { index in
-                    viewModel.deleteTask(viewModel.tasks[index])
+            ForEach(viewModel.taskSections) { section in
+                if !section.title.isEmpty {
+                    Section(header: Text(section.title)) { taskRows(for: section.tasks) }
+                } else {
+                    taskRows(for: section.tasks)
                 }
+            }
+        }
+        .animation(.default, value: viewModel.selectedGrouping)
+    }
+    
+    private func taskRows(for tasks: [Task]) -> some View {
+        ForEach(tasks) { task in
+            TaskRowView(task: task, container: container, onDelete: { viewModel.deleteTask(task) })
+        }
+        .onDelete { indexSet in
+            indexSet.forEach { index in
+                viewModel.deleteTask(tasks[index])
             }
         }
     }
@@ -71,35 +118,6 @@ struct TaskListView: View {
     private var addButton: some View {
         Button(action: { viewModel.addTask() }) {
             Label(Constants.addTaskTitle, systemImage: Constants.addIcon)
-        }
-    }
-}
-
-// MARK: - TaskRowView
-private struct TaskRowView: View {
-    let task: Task
-    let container: DIContainer
-    let onDelete: () -> Void
-    
-    var body: some View {
-        NavigationLink {
-            TaskDetailView(viewModel: container.makeTaskDetailViewModel(task: task))
-        } label: {
-            VStack(alignment: .leading, spacing: Theme.Layout.spacing / 2) {
-                Text(task.title ?? "")
-                    .font(Theme.Typography.headlineFont)
-                if let dueDate = task.dueDate {
-                    Text(dueDate, style: .date)
-                        .font(Theme.Typography.captionFont)
-                        .foregroundColor(Theme.Colors.secondary)
-                }
-            }
-            .padding(.vertical, Theme.Layout.padding / 2)
-        }
-        .swipeActions(edge: .trailing) {
-            Button(role: .destructive, action: onDelete) {
-                Label(Constants.deleteAction, systemImage: Constants.deleteIcon)
-            }
         }
     }
 }

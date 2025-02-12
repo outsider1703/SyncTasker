@@ -13,7 +13,7 @@ extension TaskEntity {
     func toTask() -> Task {
         Task(
             id: id ?? UUID(),
-            title: title,
+            title: title ?? "",
             description: taskDescription,
             dueDate: dueDate,
             isCompleted: isCompleted,

@@ -9,7 +9,7 @@ import Foundation
 
 struct Task: Identifiable {
     let id: UUID
-    var title: String?
+    var title: String
     var description: String?
     var dueDate: Date?
     var isCompleted: Bool
@@ -41,7 +41,7 @@ struct Task: Identifiable {
     
     init(
         id: UUID = UUID(),
-        title: String?,
+        title: String,
         description: String? = nil,
         dueDate: Date? = nil,
         isCompleted: Bool = false,

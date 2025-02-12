@@ -32,4 +32,21 @@ extension View {
             .foregroundColor(Theme.Colors.foreground)
             .cornerRadius(Theme.Layout.cornerRadius)
     }
+    
+    func withHapticFeedback(style: UIImpactFeedbackGenerator.FeedbackStyle = .light, onTap action: @escaping () -> Void) -> some View {
+        self.onTapGesture {
+            FeedbackManager.shared.impact(style: style)
+            action()
+        }
+    }
+    
+    func withSlideAnimation(isAnimating: Bool) -> some View {
+        self.transition(.slide)
+            .animation(.spring(), value: isAnimating)
+    }
+    
+    func withFadeAnimation(isAnimating: Bool) -> some View {
+        self.transition(.opacity)
+            .animation(.easeInOut, value: isAnimating)
+    }
 }
