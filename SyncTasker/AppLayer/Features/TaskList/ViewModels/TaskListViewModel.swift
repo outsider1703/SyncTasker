@@ -14,6 +14,7 @@ class TaskListViewModel: NSObject, ObservableObject {
     
     private let coreDataService: CoreDataServiceProtocol
     private let fetchController: NSFetchedResultsController<TaskEntity>
+    private let navigationService: NavigationServiceProtocol
     
     @Published var tasks: [Task] = []
     @Published var errorMessage: String?
@@ -55,8 +56,9 @@ class TaskListViewModel: NSObject, ObservableObject {
     
     // MARK: - Initialization
     
-    init(coreDataService: CoreDataServiceProtocol) {
+    init(coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
         self.coreDataService = coreDataService
+        self.navigationService = navigationService
         
         let request: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
@@ -72,6 +74,12 @@ class TaskListViewModel: NSObject, ObservableObject {
         
         self.fetchController.delegate = self
         self.loadTasks()
+    }
+    
+    // MARK: - Navigation Methods
+    
+    func navigateToTaskDetail(_ task: Task) async {
+        await navigationService.navigate(to: .taskDetail(task))
     }
     
     // MARK: - Public Methods

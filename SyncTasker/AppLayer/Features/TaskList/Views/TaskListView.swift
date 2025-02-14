@@ -28,17 +28,18 @@ private enum Constants {
 
 struct TaskListView: View {
     
-    // MARK: - Properties
+    // MARK: - ViewModel
     
-    @StateObject var viewModel: TaskListViewModel
-    private let container: DIContainer
+    @StateObject private var viewModel: TaskListViewModel
+    
+    // MARK: - Private Properties
+
     @State private var showingStats = false
     
     // MARK: - Initialization
     
-    init(viewModel: TaskListViewModel, container: DIContainer) {
+    init(viewModel: TaskListViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.container = container
     }
     
     // MARK: - Body
@@ -106,7 +107,10 @@ struct TaskListView: View {
     
     private func taskRows(for tasks: [Task]) -> some View {
         ForEach(tasks) { task in
-            TaskRowView(task: task, container: container, onDelete: { viewModel.deleteTask(task) })
+            TaskRowView(task: task)
+                .onTapGesture {
+                    viewModel.navigateToTaskDetail(task)
+                }
         }
         .onDelete { indexSet in
             indexSet.forEach { index in

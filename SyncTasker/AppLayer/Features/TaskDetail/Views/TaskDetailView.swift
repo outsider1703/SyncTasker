@@ -21,7 +21,6 @@ private enum Constants {
 
 struct TaskDetailView: View {
     // MARK: - Properties
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: TaskDetailViewModel
     
     // MARK: - Initialization
@@ -64,7 +63,7 @@ struct TaskDetailView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(Constants.saveButton) {
                     viewModel.saveTask()
-                    dismiss()
+                    viewModel.navigateBack()
                 }
             }
         }

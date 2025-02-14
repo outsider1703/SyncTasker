@@ -10,6 +10,7 @@ import Foundation
 class TaskDetailViewModel: ObservableObject {
     // MARK: - Properties
     private let coreDataService: CoreDataServiceProtocol
+    private let navigationService: NavigationServiceProtocol
     private let taskId: UUID
     
     @Published var title: String = ""
@@ -20,20 +21,26 @@ class TaskDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     // MARK: - Initialization
-    init(task: Task, coreDataService: CoreDataServiceProtocol) {
+    init(task: Task, coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
         self.taskId = task.id
         self.coreDataService = coreDataService
-        
+        self.navigationService = navigationService
+
         // Initialize with task data
-        self.title = task.title ?? ""
+        self.title = task.title
         self.taskDescription = task.description ?? ""
         self.dueDate = task.dueDate ?? Date()
         self.isCompleted = task.isCompleted
         self.priority = task.priority
     }
     
+    // MARK: - Navigation Methods
+    func navigateBack() async {
+        await navigationService.navigateBack()
+    }
+    
     // MARK: - Public Methods
-    func saveTask() {
+    func saveTask() async {
         let updatedTask = Task(
             id: taskId,
             title: title,
@@ -49,6 +56,7 @@ class TaskDetailViewModel: ObservableObject {
             if let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == taskId }) {
                 taskEntity.update(from: updatedTask)
                 try coreDataService.saveContext()
+                await navigateBack()
             }
         } catch {
             errorMessage = error.localizedDescription

@@ -15,8 +15,7 @@ struct SyncTaskerApp: App {
     // MARK: - Body
     var body: some Scene {
         WindowGroup {
-            TaskListView(viewModel: container.makeTaskListViewModel(), container: container)
-                .environment(\.managedObjectContext, container.coreDataService.viewContext)
+            RootView(container: container)
         }
     }
 }
