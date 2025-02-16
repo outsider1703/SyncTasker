@@ -17,15 +17,15 @@ class TaskDetailViewModel: ObservableObject {
     @Published var taskDescription: String = ""
     @Published var dueDate: Date = Date()
     @Published var isCompleted: Bool = false
-    @Published var priority: Task.Priority = .medium
+    @Published var priority: TaskItem.Priority = .medium
     @Published var errorMessage: String?
     
     // MARK: - Initialization
-    init(task: Task, coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
+    init(task: TaskItem, coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
         self.taskId = task.id
         self.coreDataService = coreDataService
         self.navigationService = navigationService
-
+        
         // Initialize with task data
         self.title = task.title
         self.taskDescription = task.description ?? ""
@@ -41,7 +41,7 @@ class TaskDetailViewModel: ObservableObject {
     
     // MARK: - Public Methods
     func saveTask() async {
-        let updatedTask = Task(
+        let updatedTask = TaskItem(
             id: taskId,
             title: title,
             description: taskDescription.isEmpty ? nil : taskDescription,
@@ -56,7 +56,6 @@ class TaskDetailViewModel: ObservableObject {
             if let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == taskId }) {
                 taskEntity.update(from: updatedTask)
                 try coreDataService.saveContext()
-                await navigateBack()
             }
         } catch {
             errorMessage = error.localizedDescription

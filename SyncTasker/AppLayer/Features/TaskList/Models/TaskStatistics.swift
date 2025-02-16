@@ -34,7 +34,7 @@ struct TaskStatistics {
         return Double(completed) / Double(total)
     }
     
-    init(tasks: [Task]) {
+    init(tasks: [TaskItem]) {
         self.total = tasks.count
         self.completed = tasks.filter { $0.isCompleted }.count
         self.overdue = tasks.filter {
@@ -48,9 +48,9 @@ struct TaskStatistics {
 struct TaskGroupSection: Identifiable {
     let id = UUID()
     let title: String
-    let tasks: [Task]
+    let tasks: [TaskItem]
     
-    static func group(_ tasks: [Task], by type: TaskGroupType) -> [TaskGroupSection] {
+    static func group(_ tasks: [TaskItem], by type: TaskGroupType) -> [TaskGroupSection] {
         switch type {
         case .none:
             return [TaskGroupSection(title: "", tasks: tasks)]

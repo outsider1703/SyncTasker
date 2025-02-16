@@ -12,5 +12,5 @@
 
 enum Route: Hashable {
     case taskList
-    case taskDetail(Task)
+    case taskDetail(TaskItem)
 }

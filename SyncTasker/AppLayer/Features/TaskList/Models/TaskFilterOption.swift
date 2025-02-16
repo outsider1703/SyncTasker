@@ -20,7 +20,7 @@ enum TaskFilterOption: Int, CaseIterable {
         }
     }
     
-    func filter(_ task: Task) -> Bool {
+    func filter(_ task: TaskItem) -> Bool {
         switch self {
         case .all: return true
         case .active: return !task.isCompleted

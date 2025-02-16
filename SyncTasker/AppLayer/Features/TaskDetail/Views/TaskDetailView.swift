@@ -48,7 +48,7 @@ struct TaskDetailView: View {
                 DatePicker(Constants.dueDateTitle, selection: $viewModel.dueDate)
                 
                 Picker(Constants.priorityTitle, selection: $viewModel.priority) {
-                    ForEach(Task.Priority.allCases, id: \.self) { priority in
+                    ForEach(TaskItem.Priority.allCases, id: \.self) { priority in
                         Text(priority.title)
                             .tag(priority)
                     }
@@ -62,8 +62,10 @@ struct TaskDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(Constants.saveButton) {
-                    viewModel.saveTask()
-                    viewModel.navigateBack()
+                    Task {
+                        await viewModel.saveTask()
+                        await viewModel.navigateBack()
+                    }
                 }
             }
         }

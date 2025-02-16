@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Task: Identifiable, Hashable {
+struct TaskItem: Identifiable, Hashable {
     let id: UUID
     var title: String
     var description: String?

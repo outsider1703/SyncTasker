@@ -53,15 +53,49 @@ struct TaskListView: View {
                 }
                 
                 filterBar
-                mainListView
+                
+                ScrollView {
+                    LazyVStack(spacing: Theme.Layout.spacing) {
+                        ForEach(viewModel.taskSections) { section in
+                            if !section.title.isEmpty {
+                                Text(section.title)
+                                    .font(Theme.Typography.headlineFont)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                            }
+                            taskRows(for: section.tasks)
+                        }
+                    }
+                    .padding()
+                }
             }
             .searchable(text: $viewModel.searchText, prompt: Constants.searchPlaceholder)
             .navigationTitle(Constants.navigationTitle)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(Constants.statisticsTitle) { withAnimation { showingStats.toggle() } }
+                    Button(Constants.statisticsTitle) { 
+                        withAnimation { showingStats.toggle() } 
+                    }
                 }
-                ToolbarItem(placement: .navigationBarTrailing) { EditButton() }
+                
+                ToolbarItem(placement: .navigationBarTrailing) { 
+                    Menu {
+                        Picker(Constants.sortTitle, selection: $viewModel.selectedSortOption) {
+                            ForEach(TaskSortOption.allCases, id: \.self) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                        
+                        Picker(Constants.filterTitle, selection: $viewModel.selectedFilter) {
+                            ForEach(TaskFilterOption.allCases, id: \.self) { filter in
+                                Text(filter.title).tag(filter)
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                }
+                
                 ToolbarItem { addButton }
             }
             Text(Constants.selectTask)
@@ -92,30 +126,12 @@ struct TaskListView: View {
         .background(Theme.Colors.background)
     }
     
-    private var mainListView: some View {
-        List {
-            ForEach(viewModel.taskSections) { section in
-                if !section.title.isEmpty {
-                    Section(header: Text(section.title)) { taskRows(for: section.tasks) }
-                } else {
-                    taskRows(for: section.tasks)
-                }
-            }
-        }
-        .animation(.default, value: viewModel.selectedGrouping)
-    }
-    
-    private func taskRows(for tasks: [Task]) -> some View {
+    private func taskRows(for tasks: [TaskItem]) -> some View {
         ForEach(tasks) { task in
-            TaskRowView(task: task)
+            TaskRowView(task: task, viewModel: viewModel)
                 .onTapGesture {
                     viewModel.navigateToTaskDetail(task)
                 }
-        }
-        .onDelete { indexSet in
-            indexSet.forEach { index in
-                viewModel.deleteTask(tasks[index])
-            }
         }
     }
     

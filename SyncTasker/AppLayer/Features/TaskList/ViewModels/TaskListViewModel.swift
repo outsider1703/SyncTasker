@@ -15,8 +15,9 @@ class TaskListViewModel: NSObject, ObservableObject {
     private let coreDataService: CoreDataServiceProtocol
     private let fetchController: NSFetchedResultsController<TaskEntity>
     private let navigationService: NavigationServiceProtocol
+    let feedbackManager: FeedbackManager
     
-    @Published var tasks: [Task] = []
+    @Published var tasks: [TaskItem] = []
     @Published var errorMessage: String?
     @Published var searchText: String = ""
     @Published var selectedSortOption: TaskSortOption = .createdAt
@@ -56,9 +57,12 @@ class TaskListViewModel: NSObject, ObservableObject {
     
     // MARK: - Initialization
     
-    init(coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
+    init(coreDataService: CoreDataServiceProtocol,
+         navigationService: NavigationServiceProtocol,
+         feedbackManager: FeedbackManager) {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
+        self.feedbackManager = feedbackManager
         
         let request: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
@@ -78,8 +82,10 @@ class TaskListViewModel: NSObject, ObservableObject {
     
     // MARK: - Navigation Methods
     
-    func navigateToTaskDetail(_ task: Task) async {
-        await navigationService.navigate(to: .taskDetail(task))
+    func navigateToTaskDetail(_ task: TaskItem) {
+        Task {
+            await navigationService.navigate(to: .taskDetail(task))
+        }
     }
     
     // MARK: - Public Methods
@@ -89,7 +95,7 @@ class TaskListViewModel: NSObject, ObservableObject {
     func applyGrouping(_ type: TaskGroupType) { selectedGrouping = type }
 
     func addTask() {
-        let task = Task(title: "New Task")
+        let task = TaskItem(title: "New Task")
         do {
             let taskEntity = coreDataService.createTask()
             taskEntity.update(from: task)
@@ -99,7 +105,7 @@ class TaskListViewModel: NSObject, ObservableObject {
         }
     }
     
-    func deleteTask(_ task: Task) {
+    func deleteTask(_ task: TaskItem) {
         do {
             if let taskToDelete = fetchController.fetchedObjects?.first(where: { $0.id == task.id }) {
                 try coreDataService.delete(taskToDelete)

@@ -10,20 +10,20 @@ import CoreData
 
 // MARK: - Task Conversion
 extension TaskEntity {
-    func toTask() -> Task {
-        Task(
+    func toTask() -> TaskItem {
+        TaskItem(
             id: id ?? UUID(),
             title: title ?? "",
             description: taskDescription,
             dueDate: dueDate,
             isCompleted: isCompleted,
-            priority: Task.Priority(rawValue: Int(priority)) ?? .medium,
+            priority: TaskItem.Priority(rawValue: Int(priority)) ?? .medium,
             createdAt: createdAt ?? Date(),
             updatedAt: updatedAt ?? Date()
         )
     }
     
-    func update(from task: Task) {
+    func update(from task: TaskItem) {
         self.id = task.id
         self.title = task.title
         self.taskDescription = task.description
