@@ -20,7 +20,7 @@ struct RootView: View {
     
     var body: some View {
         NavigationStack(path: $navigationService.path) {
-            TaskListView(viewModel: container.makeTaskListViewModel())
+            CalendarView(viewModel: container.makeCalendarViewModel())
                 .navigationDestination(for: Route.self) { route in
                     makeView(for: route)
                 }
@@ -34,6 +34,8 @@ struct RootView: View {
             TaskListView(viewModel: container.makeTaskListViewModel())
         case .taskDetail(let task):
             TaskDetailView(viewModel: container.makeTaskDetailViewModel(task: task))
+        case .calendar:
+            CalendarView(viewModel: container.makeCalendarViewModel())
         }
     }
 }

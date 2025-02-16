@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import CloudKit
 
 protocol CoreDataServiceProtocol {
     var viewContext: NSManagedObjectContext { get }
@@ -13,6 +14,7 @@ protocol CoreDataServiceProtocol {
     func saveContext() throws
     func delete(_ object: NSManagedObject) throws
     func fetchTasks() throws -> [TaskEntity]
+    func setupCloudSyncNotifications()
 }
 
 // MARK: - Error Handling
@@ -20,6 +22,7 @@ enum CoreDataError: LocalizedError {
     case saveFailed(Error)
     case deleteFailed(Error)
     case fetchFailed(Error)
+    case cloudKitError(Error)
     
     var errorDescription: String? {
         switch self {
@@ -29,6 +32,8 @@ enum CoreDataError: LocalizedError {
             return "Failed to delete: \(error.localizedDescription)"
         case .fetchFailed(let error):
             return "Failed to fetch: \(error.localizedDescription)"
+        case .cloudKitError(let error):
+            return "CloudKit error: \(error.localizedDescription)"
         }
     }
 }
@@ -38,17 +43,43 @@ class CoreDataService: CoreDataServiceProtocol {
     static let shared = CoreDataService()
     
     // MARK: - Properties
-    let container: NSPersistentContainer
+    let container: NSPersistentCloudKitContainer
     var viewContext: NSManagedObjectContext { container.viewContext }
     
     // MARK: - Initialization
     init() {
-        container = NSPersistentContainer(name: "SyncTasker")
+        container = NSPersistentCloudKitContainer(name: "SyncTasker")
+        
+        // Enable remote notifications
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        // Configure CloudKit sharing
+        if let description = container.persistentStoreDescriptions.first {
+            description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.yourdomain.SyncTasker")
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        }
+        
         container.loadPersistentStores { description, error in
             if let error = error {
                 fatalError("Core Data failed to load: \(error.localizedDescription)")
             }
         }
+        
+        setupCloudSyncNotifications()
+    }
+    
+    // MARK: - CloudKit Setup
+    func setupCloudSyncNotifications() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(managedObjectContextDidChange),
+            name: .NSManagedObjectContextDidSave,
+            object: container.viewContext
+        )
+    }
+    
+    @objc private func managedObjectContextDidChange(notification: NSNotification) {
+        try? saveContext()
     }
     
     // MARK: - CoreDataServiceProtocol

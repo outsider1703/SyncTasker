@@ -98,7 +98,6 @@ struct TaskListView: View {
                 
                 ToolbarItem { addButton }
             }
-            Text(Constants.selectTask)
         }
         .alert(Constants.errorTitle, isPresented: Binding(
             get: { viewModel.errorMessage != nil },

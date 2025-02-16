@@ -32,6 +32,12 @@ class DIContainer {
     }
     
     //MARK: - Factory Methods
+    func makeCalendarViewModel() -> CalendarViewModel {
+        return CalendarViewModel(
+            navigationService: navigationService
+        )
+    }
+    
     func makeTaskListViewModel() -> TaskListViewModel {
         return TaskListViewModel(
             coreDataService: coreDataService,

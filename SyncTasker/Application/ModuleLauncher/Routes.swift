@@ -11,6 +11,7 @@
 //- Правила для создания других представлений при навигации
 
 enum Route: Hashable {
+    case calendar
     case taskList
     case taskDetail(TaskItem)
 }
