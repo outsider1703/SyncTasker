@@ -186,17 +186,20 @@ struct CalendarView: View {
         private let calendar = Calendar.current
         
         var body: some View {
-            HStack {
+            ZStack(alignment: .topTrailing) {
+                Color.white
+                    .frame(width: 150, height: 150)
+                    .cornerRadius(8)
+                    .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+                
                 Text("\(calendar.component(.day, from: date))")
                     .font(Theme.Typography.bodyFont)
-                
-                Spacer()
+                    .padding(8)
             }
-            .frame(maxWidth: .infinity)
-            .padding()
+            .frame(width: 150, height: 150)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Theme.Colors.primary : Theme.Colors.background)
+                    .fill(isSelected ? Theme.Colors.primary : .white)
             )
             .foregroundColor(isSelected ? .white : Theme.Colors.primary)
             .onTapGesture {
@@ -235,16 +238,31 @@ struct CalendarView: View {
     struct YearView: View {
         @Binding var selectedDate: Date
         private let calendar = Calendar.current
-        private let monthsGridItems = Array(repeating: GridItem(.flexible()), count: 3)
+        private let weekDayColumns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
+        private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
         
         var body: some View {
             ScrollView {
-                LazyVGrid(columns: monthsGridItems, spacing: 16) {
-                    let months = Array(0...11)
-                    ForEach(months, id: \.self) { monthIndex in
-                        Group {
-                            if let monthDate = calendar.date(byAdding: .month, value: monthIndex, to: startOfYear) {
-                                MiniMonthView(date: monthDate, selectedDate: $selectedDate)
+                LazyVGrid(columns: monthColumns, spacing: 20) {
+                    ForEach(getMonthsInYear(), id: \.self) { month in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(getMonthTitle(for: month))
+                                .font(.system(size: 14, weight: .semibold))
+                            
+                            LazyVGrid(columns: weekDayColumns, spacing: 2) {
+                                // Empty spaces for alignment
+                                ForEach(0..<getFirstWeekdayOfMonth(month), id: \.self) { _ in
+                                    Color.clear
+                                        .frame(width: 4, height: 4)
+                                }
+                                
+                                // Days of the month
+                                ForEach(getDaysInMonth(month)) { dayItem in
+                                    DotView(isSelected: calendar.isDate(dayItem.date, inSameDayAs: selectedDate))
+                                        .onTapGesture {
+                                            selectedDate = dayItem.date
+                                        }
+                                }
                             }
                         }
                     }
@@ -253,69 +271,64 @@ struct CalendarView: View {
             }
         }
         
+        private func getMonthsInYear() -> [Date] {
+            let interval = calendar.dateInterval(of: .year, for: startOfYear)!
+            var months: [Date] = []
+            var date = interval.start
+            
+            while date < interval.end {
+                months.append(date)
+                date = calendar.date(byAdding: .month, value: 1, to: date)!
+            }
+            
+            return months
+        }
+        
+        private func getMonthTitle(for date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM"
+            return formatter.string(from: date)
+        }
+        
+        private func getFirstWeekdayOfMonth(_ date: Date) -> Int {
+            let components = calendar.dateComponents([.year, .month], from: date)
+            let firstDayOfMonth = calendar.date(from: components)!
+            return (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7
+        }
+        
         private var startOfYear: Date {
             let components = calendar.dateComponents([.year], from: selectedDate)
             return calendar.date(from: components) ?? selectedDate
         }
-    }
-}
-
-struct MiniMonthView: View {
-    let date: Date
-    @Binding var selectedDate: Date
-    private let calendar = Calendar.current
-    private let gridItems = Array(repeating: GridItem(.flexible()), count: 7)
-    
-    var body: some View {
-        LazyVGrid(columns: gridItems, spacing: 4) {
-            ForEach(getDaysInMonth()) { dayItem in
-                if let date = dayItem.date {
-                    Text("\(calendar.component(.day, from: date))")
-                        .font(Theme.Typography.captionFont)
-                        .frame(height: 20)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(calendar.isDate(date, inSameDayAs: selectedDate)
-                                      ? Theme.Colors.primary
-                                      : Theme.Colors.background)
-                        )
-                        .foregroundColor(calendar.isDate(date, inSameDayAs: selectedDate)
-                                         ? .white
-                                         : Theme.Colors.primary)
-                        .onTapGesture {
-                            selectedDate = date
-                        }
-                } else {
-                    Color.clear
-                        .frame(height: 20)
-                }
+        
+        private struct DayItem: Identifiable {
+            let id: Int
+            let date: Date
+        }
+        
+        private func getDaysInMonth(_ date: Date) -> [DayItem] {
+            let range = calendar.range(of: .day, in: .month, for: date)!
+            return range.map { day in
+                let components = calendar.dateComponents([.year, .month], from: date)
+                var newComponents = components
+                newComponents.day = day
+                let date = calendar.date(from: newComponents)!
+                return DayItem(id: day, date: date)
             }
         }
     }
     
-    private struct DayItem: Identifiable {
-        let id: Int
-        let date: Date?
-    }
-    
-    private func getDaysInMonth() -> [DayItem] {
-        let interval = calendar.dateInterval(of: .month, for: date)!
-        let firstDay = interval.start
-        let firstWeekday = calendar.component(.weekday, from: firstDay)
+    // MARK: - DotView
+    struct DotView: View {
+        let isSelected: Bool
         
-        var days: [DayItem] = []
-        for i in 0..<(firstWeekday - 1) {
-            days.append(DayItem(id: i, date: nil))
+        var body: some View {
+            RoundedRectangle(cornerRadius: 1)
+                .stroke(Color.black, lineWidth: 0.5)
+                .frame(width: 16, height: 16)
+                .background(
+                    isSelected ? Color.black : Color.clear
+                )
         }
-        
-        let daysInMonth = calendar.range(of: .day, in: .month, for: date)!.count
-        for day in 1...daysInMonth {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDay) {
-                days.append(DayItem(id: day + firstWeekday - 1, date: date))
-            }
-        }
-        
-        return days
     }
 }
