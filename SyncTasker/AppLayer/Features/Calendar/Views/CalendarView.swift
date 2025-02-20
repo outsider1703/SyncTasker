@@ -14,7 +14,9 @@ private enum Constants {
     static let taskListIcon = "list.bullet"
     static let columns = 1
     static let monthsToLoad = 100
-
+    static let monthTitleScale: CGFloat = 1.2
+    static let monthTitleOffset: CGFloat = -30
+    static let titleAnimationDuration: Double = 0.3
 }
 
 // MARK: - CalendarViewType
@@ -30,8 +32,8 @@ struct CalendarView: View {
     // MARK: - Properties
     private let calendar = Calendar.current
     @State private var selectedDate = Date()
-    @State private var currentPage = Constants.monthsToLoad / 2
     @State private var viewType: CalendarViewType = .month
+    @State private var isTitleAnimating = false
     
     private let gridItems = Array(repeating: GridItem(.flexible()), count: Constants.columns)
     
@@ -42,36 +44,52 @@ struct CalendarView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: { viewModel.navigateToTaskList() }) {
-                Label(Constants.taskListButtonTitle, systemImage: Constants.taskListIcon)
-                    .font(Theme.Typography.headlineFont)
-                    .foregroundColor(Theme.Colors.primary)
-                    .padding()
-                    .background(Theme.Colors.background)
-                    .cornerRadius(Theme.Layout.cornerRadius)
-            }
-            
-            Picker("View Type", selection: $viewType) {
-                ForEach(CalendarViewType.allCases, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
-                }
-            }
-            .pickerStyle(SegmentedPickerStyle())
-            .padding()
-            
+        VStack(alignment: .leading, spacing: 0) {
             Text(monthTitle)
                 .font(Theme.Typography.headlineFont)
                 .padding(.vertical)
+                .padding(.leading, 16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .scaleEffect(isTitleAnimating ? 1.1 : 1.0)
+                .opacity(isTitleAnimating ? 0.5 : 1.0)
+                .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
+                .onTapGesture {
+                    withAnimation {
+                        isTitleAnimating = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                            viewType = .year
+                            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                                isTitleAnimating = false
+                            }
+                        }
+                    }
+                }
             
-            switch viewType {
-            case .month:
-                MonthTabView(
-                    currentPage: $currentPage,
-                    selectedDate: $selectedDate
-                )
-            case .year:
-                YearView(selectedDate: $selectedDate)
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    switch viewType {
+                    case .month:
+                        MonthView(
+                            date: selectedDate,
+                            selectedDate: $selectedDate
+                        )
+                        .frame(width: geometry.size.width, alignment: .leading)
+                    case .year:
+                        YearView(selectedDate: $selectedDate) { date in
+                            withAnimation {
+                                isTitleAnimating = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                                    selectedDate = date
+                                    viewType = .month
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                                        isTitleAnimating = false
+                                    }
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
             }
         }
     }
@@ -79,7 +97,7 @@ struct CalendarView: View {
     // MARK: - Helper Functions
     private var monthTitle: String {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMMM yyyy"
+        dateFormatter.dateFormat = viewType == .month ? "MMMM yyyy" : "yyyy"
         return dateFormatter.string(from: selectedDate)
     }
     
@@ -97,51 +115,17 @@ struct CalendarView: View {
         @State private var selectedItemFrame: CGRect = .zero
         @State private var scrollOffset: CGFloat = 0
         
-        private let gridItems = [GridItem(.flexible())]
         
         var body: some View {
-            GeometryReader { geometry in
-                ScrollView {
-                    LazyVGrid(columns: gridItems, spacing: 8) {
-                        ForEach(getDaysInMonth()) { dayItem in
-                            if let date = dayItem.date {
-                                DayView(date: date, isSelected: calendar.isDate(date, inSameDayAs: selectedDate), onTap: {
-                                    withAnimation {
-                                        selectedDate = date
-                                    }
-                                })
-                                .id(dayItem.id)
-                                .background(
-                                    GeometryReader { itemGeometry in
-                                        Color.clear
-                                            .onAppear {
-                                                if calendar.isDate(date, inSameDayAs: Date()) {
-                                                    let frame = itemGeometry.frame(in: .named("ScrollView"))
-                                                    selectedItemFrame = frame
-                                                    
-                                                    // Calculate offset to center the selected date
-                                                    let targetOffset = frame.minY - (geometry.size.height - frame.height) / 2
-                                                    scrollOffset = max(0, targetOffset)
-                                                }
-                                            }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    .padding()
-                }
-                .coordinateSpace(name: "ScrollView")
-                .onAppear {
-                    // Set initial scroll position
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        withAnimation {
-                            if calendar.isDate(date, equalTo: Date(), toGranularity: .month) {
-                                setInitialScroll(geometry: geometry)
-                            }
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(getDaysInMonth()) { dayItem in
+                        if let date = dayItem.date {
+                            DayView(date: date, isSelected: calendar.isDate(date, inSameDayAs: selectedDate), onTap: { withAnimation { selectedDate = date } })
                         }
                     }
                 }
+                .padding(.all, 16)
             }
         }
         
@@ -170,6 +154,12 @@ struct CalendarView: View {
             }
             
             return days
+        }
+        
+        private func getMonthTitle(for date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: date)
         }
         
         private struct DayItem: Identifiable {
@@ -208,67 +198,90 @@ struct CalendarView: View {
         }
     }
     
-    // MARK: - MonthTabView
-    struct MonthTabView: View {
-        @Binding var currentPage: Int
-        @Binding var selectedDate: Date
-        
-        var body: some View {
-            TabView(selection: $currentPage) {
-                ForEach(-Constants.monthsToLoad/2...Constants.monthsToLoad/2, id: \.self) { monthOffset in
-                    MonthView(
-                        date: getDate(for: monthOffset),
-                        selectedDate: $selectedDate
-                    )
-                    .tag(monthOffset + Constants.monthsToLoad/2)
-                }
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .onChange(of: currentPage) { newValue in
-                selectedDate = getDate(for: newValue - Constants.monthsToLoad/2)
-            }
-        }
-        
-        private func getDate(for monthOffset: Int) -> Date {
-            Calendar.current.date(byAdding: .month, value: monthOffset, to: Date()) ?? Date()
-        }
-    }
-    
     // MARK: - YearView
     struct YearView: View {
         @Binding var selectedDate: Date
+        let onMonthSelected: (Date) -> Void
         private let calendar = Calendar.current
-        private let weekDayColumns = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
+        private let weekDayColumns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
         private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
         
         var body: some View {
             ScrollView {
                 LazyVGrid(columns: monthColumns, spacing: 20) {
                     ForEach(getMonthsInYear(), id: \.self) { month in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(getMonthTitle(for: month))
-                                .font(.system(size: 14, weight: .semibold))
-                            
-                            LazyVGrid(columns: weekDayColumns, spacing: 2) {
-                                // Empty spaces for alignment
-                                ForEach(0..<getFirstWeekdayOfMonth(month), id: \.self) { _ in
-                                    Color.clear
-                                        .frame(width: 4, height: 4)
-                                }
+                        Button(action: { onMonthSelected(month) }) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(getMonthTitle(for: month))
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.primary)
                                 
-                                // Days of the month
-                                ForEach(getDaysInMonth(month)) { dayItem in
-                                    DotView(isSelected: calendar.isDate(dayItem.date, inSameDayAs: selectedDate))
-                                        .onTapGesture {
-                                            selectedDate = dayItem.date
+                                let days = generateDaysForMonth(month)
+                                ForEach(0..<6) { week in
+                                    HStack(spacing: 2) {
+                                        ForEach(0..<7) { weekday in
+                                            let index = week * 7 + weekday
+                                            if index < days.count {
+                                                let day = days[index]
+                                                if let date = day.date {
+                                                    let isCurrentDate = calendar.isDate(date, inSameDayAs: selectedDate)
+                                                    RoundedRectangle(cornerRadius: 1)
+                                                        .frame(width: 16, height: 16)
+                                                        .background(isCurrentDate ? Theme.Colors.primary.opacity(0.2) : Color.clear)
+                                                } else {
+                                                    Rectangle()
+                                                        .fill(Color.clear)
+                                                        .frame(width: 16, height: 16)
+                                                }
+                                            }
                                         }
+                                    }
                                 }
                             }
                         }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
                 .padding()
             }
+        }
+        
+        // MARK: - Helper Functions
+        private struct DayItem {
+            let date: Date?
+            let dayNumber: Int?
+        }
+        
+        private func generateDaysForMonth(_ month: Date) -> [DayItem] {
+            let components = calendar.dateComponents([.year, .month], from: month)
+            guard let firstDayOfMonth = calendar.date(from: components),
+                  let daysRange = calendar.range(of: .day, in: .month, for: firstDayOfMonth)
+            else { return [] }
+            
+            var days: [DayItem] = []
+            
+            // Get the weekday of the first day (1-7, where 1 is Monday)
+            let firstWeekday = (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7 + 1
+            
+            // Add empty days for the first week
+            for _ in 1..<firstWeekday {
+                days.append(DayItem(date: nil, dayNumber: nil))
+            }
+            
+            // Add all days in the month
+            for day in daysRange {
+                if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
+                    days.append(DayItem(date: date, dayNumber: day))
+                }
+            }
+            
+            // Fill the remaining days in the last week
+            let remainingDays = 42 - days.count // 6 weeks * 7 days = 42
+            for _ in 0..<remainingDays {
+                days.append(DayItem(date: nil, dayNumber: nil))
+            }
+            
+            return days
         }
         
         private func getMonthsInYear() -> [Date] {
@@ -293,42 +306,18 @@ struct CalendarView: View {
         private func getFirstWeekdayOfMonth(_ date: Date) -> Int {
             let components = calendar.dateComponents([.year, .month], from: date)
             let firstDayOfMonth = calendar.date(from: components)!
-            return (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7
+            // Calculate weekday index (0-6) where Sunday is 0
+            return (calendar.component(.weekday, from: firstDayOfMonth) + 6) % 7
+        }
+        
+        private func getDaysInMonth(_ date: Date) -> Int {
+            guard let range = calendar.range(of: .day, in: .month, for: date) else { return 0 }
+            return range.upperBound - range.lowerBound
         }
         
         private var startOfYear: Date {
             let components = calendar.dateComponents([.year], from: selectedDate)
             return calendar.date(from: components) ?? selectedDate
-        }
-        
-        private struct DayItem: Identifiable {
-            let id: Int
-            let date: Date
-        }
-        
-        private func getDaysInMonth(_ date: Date) -> [DayItem] {
-            let range = calendar.range(of: .day, in: .month, for: date)!
-            return range.map { day in
-                let components = calendar.dateComponents([.year, .month], from: date)
-                var newComponents = components
-                newComponents.day = day
-                let date = calendar.date(from: newComponents)!
-                return DayItem(id: day, date: date)
-            }
-        }
-    }
-    
-    // MARK: - DotView
-    struct DotView: View {
-        let isSelected: Bool
-        
-        var body: some View {
-            RoundedRectangle(cornerRadius: 1)
-                .stroke(Color.black, lineWidth: 0.5)
-                .frame(width: 16, height: 16)
-                .background(
-                    isSelected ? Color.black : Color.clear
-                )
         }
     }
 }
