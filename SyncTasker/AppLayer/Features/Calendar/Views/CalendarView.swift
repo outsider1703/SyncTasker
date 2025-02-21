@@ -17,6 +17,24 @@ private enum Constants {
     static let monthTitleScale: CGFloat = 1.2
     static let monthTitleOffset: CGFloat = -30
     static let titleAnimationDuration: Double = 0.3
+    static let drawerWidth: CGFloat = UIScreen.main.bounds.width
+    static let drawerClosedPosition: CGFloat = UIScreen.main.bounds.width - 40
+    static let drawerMidPosition: CGFloat = UIScreen.main.bounds.width / 2
+    static let drawerOpenPosition: CGFloat = 0
+    static let dragThreshold: CGFloat = 50
+}
+
+// MARK: - DrawerPosition
+private enum DrawerPosition {
+    case closed, mid, open
+    
+    var offset: CGFloat {
+        switch self {
+        case .closed: return Constants.drawerClosedPosition
+        case .mid: return Constants.drawerMidPosition
+        case .open: return Constants.drawerOpenPosition
+        }
+    }
 }
 
 // MARK: - CalendarViewType
@@ -34,6 +52,9 @@ struct CalendarView: View {
     @State private var selectedDate = Date()
     @State private var viewType: CalendarViewType = .month
     @State private var isTitleAnimating = false
+    @State private var drawerOffset: CGFloat = Constants.drawerClosedPosition
+    @State private var drawerPosition: DrawerPosition = .closed
+    @State private var isDragging = false
     
     private let gridItems = Array(repeating: GridItem(.flexible()), count: Constants.columns)
     
@@ -44,36 +65,42 @@ struct CalendarView: View {
     
     // MARK: - Body
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(monthTitle)
-                .font(Theme.Typography.headlineFont)
-                .padding(.vertical)
-                .padding(.leading, 16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .scaleEffect(isTitleAnimating ? 1.1 : 1.0)
-                .opacity(isTitleAnimating ? 0.5 : 1.0)
-                .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
-                .onTapGesture {
-                    withAnimation {
-                        isTitleAnimating = true
-                        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                            viewType = .year
-                            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                                isTitleAnimating = false
-                            }
-                        }
-                    }
-                }
-            
+        ZStack {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     switch viewType {
                     case .month:
-                        MonthView(
-                            date: selectedDate,
-                            selectedDate: $selectedDate
-                        )
-                        .frame(width: geometry.size.width, alignment: .leading)
+                        HStack(spacing: 0) {
+                            // Left side - MonthView
+                            MonthView(date: selectedDate, selectedDate: $selectedDate)
+                                .frame(width: geometry.size.width/2)
+                                .ignoresSafeArea()
+                            
+                            // Right side - Month title
+                            VStack {
+                                Text(monthTitle)
+                                    .font(Theme.Typography.headlineFont)
+                                    .scaleEffect(isTitleAnimating ? 1.1 : 1.0)
+                                    .opacity(isTitleAnimating ? 0.5 : 1.0)
+                                    .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
+                                    .onTapGesture {
+                                        withAnimation {
+                                            isTitleAnimating = true
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                                                viewType = .year
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                                                    isTitleAnimating = false
+                                                }
+                                            }
+                                        }
+                                    }
+                                
+                                Spacer()
+                            }
+                            .frame(width: geometry.size.width/2)
+                            .padding(.top, 16)
+                        }
+                        
                     case .year:
                         YearView(selectedDate: $selectedDate) { date in
                             withAnimation {
@@ -91,6 +118,33 @@ struct CalendarView: View {
                     }
                 }
             }
+            
+            // Update drawer view visibility
+            if viewType == .month {
+                GeometryReader { geometry in
+                    DrawerView()
+                        .frame(width: Constants.drawerWidth)
+                        .frame(maxHeight: .infinity)
+                        .ignoresSafeArea()
+                        .background(Color.white)
+                        .offset(x: drawerOffset)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    let translation = value.translation.width
+                                    drawerOffset = min(Constants.drawerClosedPosition, max(Constants.drawerOpenPosition, getStartOffset() + translation))
+                                }
+                                .onEnded { value in
+                                    let velocity = value.predictedEndTranslation.width
+                                    let nextPosition = calculateNextPosition(velocity: velocity)
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        drawerPosition = nextPosition
+                                        drawerOffset = nextPosition.offset
+                                    }
+                                }
+                        )
+                }
+            }
         }
     }
     
@@ -103,6 +157,23 @@ struct CalendarView: View {
     
     private func getDate(for monthOffset: Int) -> Date {
         calendar.date(byAdding: .month, value: monthOffset, to: Date()) ?? Date()
+    }
+    
+    private func getStartOffset() -> CGFloat {
+        drawerPosition.offset
+    }
+    
+    private func calculateNextPosition(velocity: CGFloat) -> DrawerPosition {
+        let currentOffset = drawerOffset
+        
+        // Учитываем скорость свайпа
+        if abs(velocity) > 500 {
+            return velocity > 0 ? .closed : .open
+        }
+        
+        // Определяем ближайшую позицию
+        let positions = [DrawerPosition.closed, .mid, .open]
+        return positions.min(by: { abs($0.offset - currentOffset) < abs($1.offset - currentOffset) }) ?? .closed
     }
     
     // MARK: - MonthView
@@ -126,7 +197,9 @@ struct CalendarView: View {
                     }
                 }
                 .padding(.all, 16)
+                .padding(.top, 64)
             }
+            .ignoresSafeArea()
         }
         
         private func setInitialScroll(geometry: GeometryProxy) {
@@ -306,7 +379,6 @@ struct CalendarView: View {
         private func getFirstWeekdayOfMonth(_ date: Date) -> Int {
             let components = calendar.dateComponents([.year, .month], from: date)
             let firstDayOfMonth = calendar.date(from: components)!
-            // Calculate weekday index (0-6) where Sunday is 0
             return (calendar.component(.weekday, from: firstDayOfMonth) + 6) % 7
         }
         
@@ -318,6 +390,22 @@ struct CalendarView: View {
         private var startOfYear: Date {
             let components = calendar.dateComponents([.year], from: selectedDate)
             return calendar.date(from: components) ?? selectedDate
+        }
+    }
+    
+    private struct DrawerView: View {
+        var body: some View {
+            ZStack(alignment: .leading) {
+                Color.white
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: 40)
+                    .overlay(
+                        Image(systemName: "chevron.left")
+                            .foregroundColor(.gray)
+                    )
+            }
+            .shadow(radius: 5)
         }
     }
 }
