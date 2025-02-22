@@ -30,8 +30,6 @@ struct RootView: View {
     @ViewBuilder
     private func makeView(for route: Route) -> some View {
         switch route {
-        case .taskList:
-            TaskListView(viewModel: container.makeTaskListViewModel())
         case .taskDetail(let task):
             TaskDetailView(viewModel: container.makeTaskDetailViewModel(task: task))
         case .calendar:

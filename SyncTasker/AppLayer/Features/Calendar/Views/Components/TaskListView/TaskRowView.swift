@@ -13,16 +13,19 @@ private enum Constants {
 }
 
 struct TaskRowView: View {
+    
     // MARK: - Properties
-    @StateObject private var viewModel: TaskListViewModel
+    
     private var task: TaskItem
     
     // MARK: - Initialization
-    init(task: TaskItem, viewModel: TaskListViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+    
+    init(task: TaskItem) {
         self.task = task
     }
     
+    // MARK: - Body
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(task.title)

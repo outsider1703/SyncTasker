@@ -37,7 +37,6 @@ struct TaskStatisticsView: View {
             
             CompletionProgressView(completionRate: statistics.completionRate, isAnimating: isAnimating)
         }
-        .padding()
         .background(Theme.Colors.background)
         .onAppear { isAnimating = true }
     }

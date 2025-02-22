@@ -12,6 +12,5 @@
 
 enum Route: Hashable {
     case calendar
-    case taskList
     case taskDetail(TaskItem)
 }
