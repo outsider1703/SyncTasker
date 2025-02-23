@@ -9,41 +9,64 @@ import SwiftUI
 
 struct DrawerView: View {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    @Binding var offset: CGFloat
-    @Binding var position: DrawerPosition
-    @State private var lastDragValue: CGFloat = 0
-    var taskSections: [TaskGroupSection]
+    @Binding private var offset: CGFloat
+    @Binding private var position: DrawerPosition
+    @Binding private var selectedSortOption: TaskSortOption
+    @Binding private var selectedFilter: TaskFilterOption
+    @Binding private var errorMessage: String?
+    private var taskSections: [TaskGroupSection]
+    
+    // MARK: - Initialization
+    
+    init(
+        offset: Binding<CGFloat>,
+        position: Binding<DrawerPosition>,
+        selectedSortOption: Binding<TaskSortOption>,
+        selectedFilter: Binding<TaskFilterOption>,
+        errorMessage: Binding<String?>,
+        taskSections: [TaskGroupSection]
+    ) {
+        self._offset = offset
+        self._position = position
+        self._selectedSortOption = selectedSortOption
+        self._selectedFilter = selectedFilter
+        self._errorMessage = errorMessage
+        self.taskSections = taskSections
+    }
     
     // MARK: - Body
     
     var body: some View {
         GeometryReader { geometry in
-            TaskListView(taskSections: taskSections)
-                .frame(width: UIScreen.main.bounds.width)
-                .frame(maxHeight: .infinity)
-                .ignoresSafeArea()
-                .background(Color.white)
-                .offset(x: offset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            offset = min(DrawerPosition.closed.offset, max(DrawerPosition.open.offset, getStartOffset() + value.translation.width))
+            TaskListView(taskSections: taskSections,
+                         selectedSortOption: $selectedSortOption,
+                         selectedFilter: $selectedFilter,
+                         errorMessage: $errorMessage)
+            .frame(width: UIScreen.main.bounds.width)
+            .frame(maxHeight: .infinity)
+            .ignoresSafeArea()
+            .background(Color.white)
+            .offset(x: offset)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        offset = min(DrawerPosition.closed.offset, max(DrawerPosition.open.offset, getStartOffset() + value.translation.width))
+                    }
+                    .onEnded { value in
+                        let velocity = value.predictedEndTranslation.width
+                        let nextPosition = calculateNextPosition(velocity: velocity)
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            position = nextPosition
+                            offset = nextPosition.offset
                         }
-                        .onEnded { value in
-                            let velocity = value.predictedEndTranslation.width
-                            let nextPosition = calculateNextPosition(velocity: velocity)
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                position = nextPosition
-                                offset = nextPosition.offset
-                            }
-                        }
-                )
+                    }
+            )
         }
     }
     
-    // MARK: - Helper Functions
+    // MARK: - Private Methods
     
     private func getStartOffset() -> CGFloat {
         position.offset

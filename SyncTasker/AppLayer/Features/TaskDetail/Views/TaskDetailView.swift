@@ -20,11 +20,16 @@ private enum Constants {
 }
 
 struct TaskDetailView: View {
-    // MARK: - Properties
+    
+    // MARK: - Private Properties
+    
     @StateObject private var viewModel: TaskDetailViewModel
     
     // MARK: - Initialization
-    init(viewModel: TaskDetailViewModel) {
+    
+    init(
+        viewModel: TaskDetailViewModel
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
@@ -74,8 +79,7 @@ struct TaskDetailView: View {
             set: { if !$0 { viewModel.errorMessage = nil } }
         )) {
             Button(Constants.okButton) { viewModel.errorMessage = nil }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
         }
+        message: { Text(viewModel.errorMessage ?? "") }
     }
 }

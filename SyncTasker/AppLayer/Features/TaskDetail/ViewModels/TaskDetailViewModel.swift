@@ -8,10 +8,14 @@
 import Foundation
 
 class TaskDetailViewModel: ObservableObject {
-    // MARK: - Properties
+    
+    // MARK: - Injections
+    
     private let coreDataService: CoreDataServiceProtocol
     private let navigationService: NavigationServiceProtocol
     private let taskId: UUID
+    
+    // MARK: - Properties
     
     @Published var title: String = ""
     @Published var taskDescription: String = ""
@@ -21,7 +25,12 @@ class TaskDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     // MARK: - Initialization
-    init(task: TaskItem, coreDataService: CoreDataServiceProtocol, navigationService: NavigationServiceProtocol) {
+    
+    init(
+        task: TaskItem,
+        coreDataService: CoreDataServiceProtocol,
+        navigationService: NavigationServiceProtocol
+    ) {
         self.taskId = task.id
         self.coreDataService = coreDataService
         self.navigationService = navigationService
@@ -35,11 +44,13 @@ class TaskDetailViewModel: ObservableObject {
     }
     
     // MARK: - Navigation Methods
+    
     func navigateBack() async {
         await navigationService.navigateBack()
     }
     
     // MARK: - Public Methods
+    
     func saveTask() async {
         let updatedTask = TaskItem(
             id: taskId,

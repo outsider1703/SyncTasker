@@ -8,10 +8,7 @@
 import Foundation
 
 enum TaskSortOption: Int, CaseIterable {
-    case createdAt
-    case dueDate
-    case priority
-    case title
+    case createdAt, dueDate, priority, title
     
     var title: String {
         switch self {

@@ -16,8 +16,19 @@ private enum Constants {
 }
 
 struct TaskStatisticsView: View {
-    let statistics: TaskStatistics
+    
+    // MARK: - Private Properties
+    
+    private let statistics: TaskStatistics
     @State private var isAnimating = false
+    
+    // MARK: - Initialization
+    
+    init(
+        statistics: TaskStatistics
+    ) {
+        self.statistics = statistics
+    }
     
     var body: some View {
         VStack(spacing: Theme.Layout.spacing) {
@@ -43,9 +54,24 @@ struct TaskStatisticsView: View {
 }
 
 private struct StatCard: View {
-    let title: String
-    let value: String
-    let color: Color
+    
+    // MARK: - Private Properties
+    
+    private let title: String
+    private let value: String
+    private let color: Color
+    
+    // MARK: - Initialization
+    
+    init(
+        title: String,
+        value: String,
+        color: Color
+    ) {
+        self.title = title
+        self.value = value
+        self.color = color
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -67,8 +93,21 @@ private struct StatCard: View {
 }
 
 private struct CompletionProgressView: View {
-    let completionRate: Double
-    let isAnimating: Bool
+    
+    // MARK: - Private Properties
+    
+    private let completionRate: Double
+    private let isAnimating: Bool
+    
+    // MARK: - Initialization
+    
+    init(
+        completionRate: Double,
+        isAnimating: Bool
+    ) {
+        self.completionRate = completionRate
+        self.isAnimating = isAnimating
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

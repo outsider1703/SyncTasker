@@ -10,12 +10,14 @@ import CoreData
 
 class CalendarViewModel: NSObject, ObservableObject {
     
-    // MARK: - Properties
+    // MARK: - Injections
     
     private let coreDataService: CoreDataServiceProtocol
     private let fetchController: NSFetchedResultsController<TaskEntity>
     private let navigationService: NavigationServiceProtocol
-    let feedbackManager: FeedbackManager
+    private let feedbackManager: FeedbackManager
+    
+    // MARK: - Properties
     
     @Published var tasks: [TaskItem] = []
     @Published var errorMessage: String?
@@ -57,10 +59,11 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Initialization
     
-    init(coreDataService: CoreDataServiceProtocol,
-         navigationService: NavigationServiceProtocol,
-         feedbackManager: FeedbackManager) {
-        
+    init(
+        coreDataService: CoreDataServiceProtocol,
+        navigationService: NavigationServiceProtocol,
+        feedbackManager: FeedbackManager
+    ) {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
         self.feedbackManager = feedbackManager
@@ -94,7 +97,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     func applySort(_ option: TaskSortOption) { selectedSortOption = option }
     func applyFilter(_ filter: TaskFilterOption) { selectedFilter = filter }
     func applyGrouping(_ type: TaskGroupType) { selectedGrouping = type }
-
+    
     func addTask() {
         let task = TaskItem(title: "New Task")
         do {

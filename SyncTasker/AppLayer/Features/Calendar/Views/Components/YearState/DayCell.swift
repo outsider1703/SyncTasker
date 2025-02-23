@@ -9,9 +9,23 @@ import SwiftUI
 
 struct DayCell: View {
     
-    let dayItem: DayItem
-    let selectedDate: Date
-    let calendar: Calendar
+    // MARK: - Private Properties
+    
+    private let dayItem: DayItem
+    private let selectedDate: Date
+    private let calendar: Calendar
+    
+    // MARK: - Initialization
+    
+    init(
+        dayItem: DayItem,
+        selectedDate: Date,
+        calendar: Calendar
+    ) {
+        self.dayItem = dayItem
+        self.selectedDate = selectedDate
+        self.calendar = calendar
+    }
     
     var body: some View {
         if let date = dayItem.date {

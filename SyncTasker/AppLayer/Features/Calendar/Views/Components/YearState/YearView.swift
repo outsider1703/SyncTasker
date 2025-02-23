@@ -9,12 +9,22 @@ import SwiftUI
 
 struct YearView: View {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    @Binding var selectedDate: Date
-    let onMonthSelected: (Date) -> Void
+    @Binding private var selectedDate: Date
+    private let onMonthSelected: (Date) -> Void
     private let calendar = Calendar.current
     private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
+    
+    // MARK: - Initialization
+    
+    init(
+        selectedDate: Binding<Date>,
+        onMonthSelected: @escaping (Date) -> Void
+    ) {
+        self._selectedDate = selectedDate
+        self.onMonthSelected = onMonthSelected
+    }
     
     // MARK: - Body
     
@@ -23,9 +33,9 @@ struct YearView: View {
             LazyVGrid(columns: monthColumns, spacing: 20) {
                 ForEach(getMonthsInYear(), id: \.self) { month in
                     MonthGridItem(month: month,
-                                 selectedDate: selectedDate,
-                                 calendar: calendar,
-                                 onMonthSelected: onMonthSelected)
+                                  selectedDate: selectedDate,
+                                  calendar: calendar,
+                                  onMonthSelected: onMonthSelected)
                 }
             }
             .padding()

@@ -8,14 +8,22 @@
 import SwiftUI
 
 struct MonthView: View {
-    // MARK: - Properties
+    
+    // MARK: - Private Properties
     
     private let calendar = Calendar.current
-    let date: Date
-    @Binding var selectedDate: Date
-    @State private var viewHeight: CGFloat = 0
-    @State private var selectedItemFrame: CGRect = .zero
-    @State private var scrollOffset: CGFloat = 0
+    private let date: Date
+    @Binding private var selectedDate: Date
+    
+    // MARK: - Initialization
+    
+    init(
+        date: Date,
+        selectedDate: Binding<Date>
+    ) {
+        self.date = date
+        self._selectedDate = selectedDate
+    }
     
     // MARK: - Body
     
@@ -24,9 +32,11 @@ struct MonthView: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(getDaysInMonth()) { dayItem in
                     if let date = dayItem.date {
-                        DayView(date: date,
-                               isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
-                               onTap: { withAnimation { selectedDate = date } })
+                        DayView(
+                            date: date,
+                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                            onTap: { withAnimation { selectedDate = date } }
+                        )
                     }
                 }
             }
@@ -54,7 +64,6 @@ struct MonthView: View {
                 days.append(DayItem(id: day + firstWeekday - 1, date: date))
             }
         }
-        
         return days
     }
 }

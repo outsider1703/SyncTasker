@@ -9,12 +9,24 @@ import SwiftUI
 
 struct DayView: View {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    let date: Date
-    let isSelected: Bool
-    let onTap: () -> Void
+    private let date: Date
+    private let isSelected: Bool
+    private let onTap: () -> Void
     private let calendar = Calendar.current
+    
+    // MARK: - Initialization
+    
+    init(
+        date: Date,
+        isSelected: Bool,
+        onTap: @escaping () -> Void
+    ) {
+        self.date = date
+        self.isSelected = isSelected
+        self.onTap = onTap
+    }
     
     // MARK: - Body
     

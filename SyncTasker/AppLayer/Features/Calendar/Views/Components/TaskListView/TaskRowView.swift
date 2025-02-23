@@ -7,25 +7,22 @@
 
 import SwiftUI
 
-// MARK: - Constants
-
-private enum Constants {
-}
-
 struct TaskRowView: View {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
     private var task: TaskItem
     
     // MARK: - Initialization
     
-    init(task: TaskItem) {
+    init(
+        task: TaskItem
+    ) {
         self.task = task
     }
     
     // MARK: - Body
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(task.title)

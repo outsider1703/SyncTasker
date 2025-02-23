@@ -9,12 +9,26 @@ import SwiftUI
 
 struct MonthGridItem: View {
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    let month: Date
-    let selectedDate: Date
-    let calendar: Calendar
-    let onMonthSelected: (Date) -> Void
+    private let month: Date
+    private let selectedDate: Date
+    private let calendar: Calendar
+    private let onMonthSelected: (Date) -> Void
+    
+    // MARK: - Initialization
+    
+    init(
+        month: Date,
+        selectedDate: Date,
+        calendar: Calendar,
+        onMonthSelected: @escaping (Date) -> Void
+    ) {
+        self.month = month
+        self.selectedDate = selectedDate
+        self.calendar = calendar
+        self.onMonthSelected = onMonthSelected
+    }
     
     // MARK: - Body
     

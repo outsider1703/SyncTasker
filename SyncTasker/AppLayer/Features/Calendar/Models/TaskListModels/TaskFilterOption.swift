@@ -8,9 +8,7 @@
 import Foundation
 
 enum TaskFilterOption: Int, CaseIterable {
-    case all
-    case active
-    case completed
+    case all, active, completed
     
     var title: String {
         switch self {

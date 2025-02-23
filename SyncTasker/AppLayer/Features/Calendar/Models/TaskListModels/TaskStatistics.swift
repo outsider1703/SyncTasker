@@ -8,10 +8,7 @@
 import Foundation
 
 enum TaskGroupType: Int, CaseIterable {
-    case none
-    case dueDate
-    case priority
-    case status
+    case none, dueDate, priority, status
     
     var title: String {
         switch self {

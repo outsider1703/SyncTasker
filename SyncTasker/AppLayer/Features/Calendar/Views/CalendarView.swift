@@ -10,13 +10,7 @@ import SwiftUI
 // MARK: - Constants
 
 private enum Constants {
-    static let navigationTitle = "Calendar"
-    static let taskListButtonTitle = "Open Task List"
-    static let taskListIcon = "list.bullet"
-    static let columns = 1
-    static let monthsToLoad = 100
     static let monthTitleScale: CGFloat = 1.2
-    static let monthTitleOffset: CGFloat = -30
     static let titleAnimationDuration: Double = 0.3
 }
 
@@ -26,19 +20,19 @@ struct CalendarView: View {
     
     @StateObject private var viewModel: CalendarViewModel
     
-    // MARK: - Properties
+    // MARK: - Private Properties
     
-    private let calendar = Calendar.current
     @State private var selectedDate = Date()
     @State private var viewType: CalendarViewType = .month
     @State private var isTitleAnimating = false
     @State private var drawerOffset: CGFloat = DrawerPosition.closed.offset
     @State private var drawerPosition: DrawerPosition = .closed
-    @State private var isDragging = false
     
     // MARK: - Initialization
     
-    init(viewModel: CalendarViewModel) {
+    init(
+        viewModel: CalendarViewModel
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
@@ -64,10 +58,9 @@ struct CalendarView: View {
                                     .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
                                     .onTapGesture { switchToYearView() }
                                 TaskStatisticsView(statistics: viewModel.statistics)
-
+                                
                                 Spacer()
                             }
-                            //.frame(width: geometry.size.width - 182)
                         }
                         
                     case .year:
@@ -81,19 +74,24 @@ struct CalendarView: View {
                 DrawerView(
                     offset: $drawerOffset,
                     position: $drawerPosition,
+                    selectedSortOption: $viewModel.selectedSortOption,
+                    selectedFilter: $viewModel.selectedFilter,
+                    errorMessage: $viewModel.errorMessage,
                     taskSections: viewModel.taskSections
                 )
             }
         }
     }
     
-    // MARK: - Helper Functions
+    // MARK: - Subviews
     
     private var monthTitle: String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = viewType == .month ? "MMMM yyyy" : "yyyy"
         return dateFormatter.string(from: selectedDate)
     }
+    
+    // MARK: - Private Methods
     
     private func switchToYearView() {
         withAnimation {

@@ -11,32 +11,36 @@ import CoreData
 // MARK: - Constants
 
 private enum Constants {
-    static let navigationTitle = "Tasks"
+    static let navigationTitle = "Backlog"
     static let errorTitle = "Error"
     static let okButton = "OK"
     static let addTaskTitle = "Add Task"
-    static let deleteAction = "Delete"
     static let addIcon = "plus"
-    static let deleteIcon = "trash"
-    static let selectTask = "Select a task"
     static let sortTitle = "Sort By"
     static let filterTitle = "Filter"
-    static let searchPlaceholder = "Search tasks..."
-    static let groupTitle = "Group By"
-    static let statisticsTitle = "Statistics"
 }
 
 struct TaskListView: View {
     
     // MARK: - Private Properties
     
-    @State private var showingStats = false
+    @Binding private var selectedSortOption: TaskSortOption
+    @Binding private var selectedFilter: TaskFilterOption
+    @Binding private var errorMessage: String?
     private var taskSections: [TaskGroupSection]
     
     // MARK: - Initialization
     
-    init(taskSections: [TaskGroupSection]) {
+    init(
+        taskSections: [TaskGroupSection],
+        selectedSortOption: Binding<TaskSortOption>,
+        selectedFilter: Binding<TaskFilterOption>,
+        errorMessage: Binding<String?>
+    ) {
         self.taskSections = taskSections
+        self._selectedSortOption = selectedSortOption
+        self._selectedFilter = selectedFilter
+        self._errorMessage = errorMessage
     }
     
     // MARK: - Body
@@ -44,8 +48,6 @@ struct TaskListView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                //filterBar
-                
                 ScrollView {
                     LazyVStack(spacing: Theme.Layout.spacing) {
                         ForEach(taskSections) { section in
@@ -55,7 +57,12 @@ struct TaskListView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal)
                             }
-                            taskRows(for: section.tasks)
+                            ForEach(section.tasks) { task in
+                                TaskRowView(task: task)
+                                    .onTapGesture {
+                                        //viewModel.navigateToTaskDetail(task)
+                                    }
+                            }
                         }
                     }
                     .padding()
@@ -63,40 +70,44 @@ struct TaskListView: View {
             }
             .navigationTitle(Constants.navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem { addButton } }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) { addButton }
+                ToolbarItem(placement: .navigationBarLeading) { filterAndSorting }
+            }
         }
+        .alert(Constants.errorTitle, isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { self.errorMessage = nil } }
+        )) {
+            Button(Constants.okButton) { self.errorMessage = nil }
+        }
+        message: { Text(errorMessage ?? "") }
     }
     
     // MARK: - Subviews
-    
-    //    private var filterBar: some View {
-    //        VStack(spacing: Theme.Layout.spacing / 2) {
-    //            Picker(Constants.groupTitle, selection: $viewModel.selectedGrouping) {
-    //                ForEach(TaskGroupType.allCases, id: \.self) { group in
-    //                    Text(group.title).tag(group)
-    //                }
-    //            }
-    //            .pickerStyle(.segmented)
-    //            .padding(.horizontal)
-    //        }
-    //        .padding(.vertical, Theme.Layout.padding / 2)
-    //        .background(Theme.Colors.background)
-    //    }
-    
-    private func taskRows(for tasks: [TaskItem]) -> some View {
-        ForEach(tasks) { task in
-            TaskRowView(task: task)
-                .onTapGesture {
-                    //viewModel.navigateToTaskDetail(task)
-                }
-        }
-    }
     
     private var addButton: some View {
         Button(action: {
             //viewModel.addTask()
         }) {
             Label(Constants.addTaskTitle, systemImage: Constants.addIcon)
+        }
+    }
+    
+    private var filterAndSorting: some View {
+        Menu {
+            Picker(Constants.sortTitle, selection: $selectedSortOption) {
+                ForEach(TaskSortOption.allCases, id: \.self) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            Picker(Constants.filterTitle, selection: $selectedFilter) {
+                ForEach(TaskFilterOption.allCases, id: \.self) { filter in
+                    Text(filter.title).tag(filter)
+                }
+            }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle")
         }
     }
 }
