@@ -20,6 +20,8 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Properties
     
     @Published var tasks: [TaskItem] = []
+    @Published var appointmentTasks: [Date: [TaskItem]] = [:]
+    @Published var backlogTasks: [TaskItem] = []
     @Published var errorMessage: String?
     @Published var searchText: String = ""
     @Published var selectedSortOption: TaskSortOption = .createdAt
@@ -28,10 +30,12 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Computed Properties
     
+    var dailyTasks: [Date: [TaskItem]] { appointmentTasks }
+    
     var statistics: TaskStatistics { TaskStatistics(tasks: tasks) }
     
     var taskSections: [TaskGroupSection] {
-        let filtered = tasks.filter { task in
+        let filtered = backlogTasks.filter { task in
             if !searchText.isEmpty {
                 return task.title.localizedCaseInsensitiveContains(searchText) || task.description?.localizedCaseInsensitiveContains(searchText) ?? false
             }
@@ -98,6 +102,10 @@ class CalendarViewModel: NSObject, ObservableObject {
     func applyFilter(_ filter: TaskFilterOption) { selectedFilter = filter }
     func applyGrouping(_ type: TaskGroupType) { selectedGrouping = type }
     
+    func updateTaskDate(task: UUID, to date: Date) {
+        update(for: task, and: date)
+    }
+
     func addTask() {
         let task = TaskItem(title: "New Task")
         do {
@@ -124,7 +132,36 @@ class CalendarViewModel: NSObject, ObservableObject {
     private func loadTasks() {
         do {
             try fetchController.performFetch()
-            tasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
+            let allTasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
+            let groupedTasks = allTasks.groupByAppointmentDate()
+            
+            tasks = allTasks
+            appointmentTasks = groupedTasks.appointmentTasks
+            backlogTasks = groupedTasks.backlogTasks
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    private func update(for taskId: UUID, and date: Date) {
+        guard let task = tasks.first(where: { $0.id == taskId }) else { return }
+        let updatedTask = TaskItem(
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            dueDate: task.dueDate,
+            isCompleted: task.isCompleted,
+            priority: task.priority,
+            createdAt: task.createdAt,
+            updatedAt: Date(),
+            appointmentDate: date
+        )
+        
+        do {
+            if let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == task.id }) {
+                taskEntity.update(from: updatedTask)
+                try coreDataService.saveContext()
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

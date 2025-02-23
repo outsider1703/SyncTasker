@@ -38,6 +38,13 @@ struct TaskRowView: View {
         }
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
+        .contentShape([.dragPreview], RoundedRectangle(cornerRadius: 8))
+        .draggable(task.id.uuidString) {
+            TaskRowView(task: task)
+                .frame(width: 150)
+                .background(Theme.Colors.background)
+                .cornerRadius(8)
+                .shadow(radius: 4)
+        }
     }
 }

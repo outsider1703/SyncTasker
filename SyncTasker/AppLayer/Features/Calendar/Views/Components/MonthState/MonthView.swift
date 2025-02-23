@@ -11,18 +11,24 @@ struct MonthView: View {
     
     // MARK: - Private Properties
     
+    @Binding private var selectedDate: Date
+    private var dailyTasks: [Date: [TaskItem]]
     private let calendar = Calendar.current
     private let date: Date
-    @Binding private var selectedDate: Date
+    private let onTaskDropped: (UUID, Date) -> Void
     
     // MARK: - Initialization
     
     init(
         date: Date,
-        selectedDate: Binding<Date>
+        selectedDate: Binding<Date>,
+        dailyTasks: [Date: [TaskItem]],
+        onTaskDropped: @escaping (UUID, Date) -> Void
     ) {
         self.date = date
         self._selectedDate = selectedDate
+        self.onTaskDropped = onTaskDropped
+        self.dailyTasks = dailyTasks
     }
     
     // MARK: - Body
@@ -35,7 +41,9 @@ struct MonthView: View {
                         DayView(
                             date: date,
                             isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
-                            onTap: { withAnimation { selectedDate = date } }
+                            tasks: getTasksForDate(date),
+                            onTap: { withAnimation { selectedDate = date } },
+                            onTaskDropped: onTaskDropped
                         )
                     }
                 }
@@ -46,8 +54,14 @@ struct MonthView: View {
         .ignoresSafeArea()
     }
     
-    // MARK: - Helper Functions
-    
+    // MARK: - Private Methods
+
+    private func getTasksForDate(_ date: Date) -> [TaskItem] {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        guard let normalizedDate = calendar.date(from: components) else { return [] }
+        return dailyTasks[normalizedDate] ?? []
+    }
+
     private func getDaysInMonth() -> [DayItem] {
         let interval = calendar.dateInterval(of: .month, for: date)!
         let firstDay = interval.start

@@ -19,7 +19,8 @@ extension TaskEntity {
             isCompleted: isCompleted,
             priority: TaskItem.Priority(rawValue: Int(priority)) ?? .medium,
             createdAt: createdAt ?? Date(),
-            updatedAt: updatedAt ?? Date()
+            updatedAt: updatedAt ?? Date(),
+            appointmentDate: appointmentDate
         )
     }
     
@@ -32,5 +33,6 @@ extension TaskEntity {
         self.priority = Int16(task.priority.rawValue)
         self.createdAt = task.createdAt
         self.updatedAt = task.updatedAt
+        self.appointmentDate = task.appointmentDate
     }
 }

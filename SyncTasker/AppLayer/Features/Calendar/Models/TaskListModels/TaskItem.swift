@@ -16,6 +16,7 @@ struct TaskItem: Identifiable, Hashable {
     var priority: Priority
     var createdAt: Date
     var updatedAt: Date
+    var appointmentDate: Date?
     
     enum Priority: Int, CaseIterable {
         case low = 0
@@ -47,7 +48,8 @@ struct TaskItem: Identifiable, Hashable {
         isCompleted: Bool = false,
         priority: Priority = .medium,
         createdAt: Date = Date(),
-        updatedAt: Date = Date()
+        updatedAt: Date = Date(),
+        appointmentDate: Date? = nil
     ) {
         self.id = id
         self.title = title
@@ -57,5 +59,6 @@ struct TaskItem: Identifiable, Hashable {
         self.priority = priority
         self.createdAt = createdAt
         self.updatedAt = updatedAt
+        self.appointmentDate = appointmentDate
     }
 }

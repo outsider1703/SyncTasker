@@ -40,33 +40,36 @@ struct CalendarView: View {
     
     var body: some View {
         ZStack {
-            GeometryReader { geometry in
-                ZStack(alignment: .leading) {
-                    switch viewType {
-                    case .month:
-                        HStack(spacing: 0) {
-                            MonthView(date: selectedDate, selectedDate: $selectedDate)
-                                .frame(width: 182)
-                                .ignoresSafeArea()
-                            
-                            VStack(alignment: .leading) {
-                                Text(monthTitle)
-                                    .font(Theme.Typography.headlineFont)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
-                                    .opacity(isTitleAnimating ? 0.5 : 1.0)
-                                    .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
-                                    .onTapGesture { switchToYearView() }
-                                TaskStatisticsView(statistics: viewModel.statistics)
-                                
-                                Spacer()
-                            }
-                        }
+            ZStack(alignment: .leading) {
+                switch viewType {
+                case .month:
+                    HStack(spacing: 0) {
+                        MonthView(
+                            date: selectedDate,
+                            selectedDate: $selectedDate,
+                            dailyTasks: viewModel.dailyTasks,
+                            onTaskDropped: { task, date in
+                                viewModel.updateTaskDate(task: task, to: date)
+                            })
+                        .frame(width: 182)
                         
-                    case .year:
-                        YearView(selectedDate: $selectedDate, onMonthSelected: switchToMonthView)
-                            .frame(maxWidth: .infinity)
+                        VStack(alignment: .leading) {
+                            Text(monthTitle)
+                                .font(Theme.Typography.headlineFont)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
+                                .opacity(isTitleAnimating ? 0.5 : 1.0)
+                                .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
+                                .onTapGesture { switchToYearView() }
+                            TaskStatisticsView(statistics: viewModel.statistics)
+                            
+                            Spacer()
+                        }
                     }
+                    
+                case .year:
+                    YearView(selectedDate: $selectedDate, onMonthSelected: switchToMonthView)
+                        .frame(maxWidth: .infinity)
                 }
             }
             

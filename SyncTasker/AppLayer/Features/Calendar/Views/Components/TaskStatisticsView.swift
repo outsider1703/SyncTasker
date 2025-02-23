@@ -19,8 +19,8 @@ struct TaskStatisticsView: View {
     
     // MARK: - Private Properties
     
-    private let statistics: TaskStatistics
     @State private var isAnimating = false
+    private let statistics: TaskStatistics
     
     // MARK: - Initialization
     
