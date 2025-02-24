@@ -90,10 +90,8 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Navigation Methods
     
-    func navigateToTaskDetail(_ task: TaskItem) {
-        Task {
-            await navigationService.navigate(to: .taskDetail(task))
-        }
+    func navigateToTaskDetail(_ task: TaskItem?) {
+        Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
     // MARK: - Public Methods
@@ -104,17 +102,6 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     func updateTaskDate(task: UUID, to date: Date) {
         update(for: task, and: date)
-    }
-
-    func addTask() {
-        let task = TaskItem(title: "New Task")
-        do {
-            let taskEntity = coreDataService.createTask()
-            taskEntity.update(from: task)
-            try coreDataService.saveContext()
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
     
     func deleteTask(_ task: TaskItem) {

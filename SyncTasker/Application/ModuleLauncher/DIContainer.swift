@@ -40,7 +40,7 @@ class DIContainer {
         )
     }
     
-    func makeTaskDetailViewModel(task: TaskItem) -> TaskDetailViewModel {
+    func makeTaskDetailViewModel(task: TaskItem?) -> TaskDetailViewModel {
         return TaskDetailViewModel(
             task: task,
             coreDataService: coreDataService,

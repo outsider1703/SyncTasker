@@ -80,8 +80,9 @@ struct CalendarView: View {
                     selectedSortOption: $viewModel.selectedSortOption,
                     selectedFilter: $viewModel.selectedFilter,
                     errorMessage: $viewModel.errorMessage,
-                    taskSections: viewModel.taskSections
-                )
+                    taskSections: viewModel.taskSections) { task in
+                        viewModel.navigateToTaskDetail(task)
+                    }
             }
         }
     }

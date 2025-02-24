@@ -17,7 +17,8 @@ struct DrawerView: View {
     @Binding private var selectedFilter: TaskFilterOption
     @Binding private var errorMessage: String?
     private var taskSections: [TaskGroupSection]
-    
+    private var navigateToTaskDetail: (TaskItem?) -> Void
+
     // MARK: - Initialization
     
     init(
@@ -26,7 +27,8 @@ struct DrawerView: View {
         selectedSortOption: Binding<TaskSortOption>,
         selectedFilter: Binding<TaskFilterOption>,
         errorMessage: Binding<String?>,
-        taskSections: [TaskGroupSection]
+        taskSections: [TaskGroupSection],
+        navigateToTaskDetail: @escaping (TaskItem?) -> Void
     ) {
         self._offset = offset
         self._position = position
@@ -34,6 +36,7 @@ struct DrawerView: View {
         self._selectedFilter = selectedFilter
         self._errorMessage = errorMessage
         self.taskSections = taskSections
+        self.navigateToTaskDetail = navigateToTaskDetail
     }
     
     // MARK: - Body
@@ -43,7 +46,8 @@ struct DrawerView: View {
             TaskListView(taskSections: taskSections,
                          selectedSortOption: $selectedSortOption,
                          selectedFilter: $selectedFilter,
-                         errorMessage: $errorMessage)
+                         errorMessage: $errorMessage,
+                         navigateToTaskDetail: navigateToTaskDetail)
             .frame(width: UIScreen.main.bounds.width)
             .frame(maxHeight: .infinity)
             .ignoresSafeArea()

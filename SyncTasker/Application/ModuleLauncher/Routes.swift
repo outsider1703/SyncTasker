@@ -10,7 +10,21 @@
 //- Начальное представление (root view)
 //- Правила для создания других представлений при навигации
 
-enum Route: Hashable {
+enum Route: Hashable, Identifiable {
     case calendar
-    case taskDetail(TaskItem)
+    case taskDetail(TaskItem?)
+    
+    var id: String {
+        switch self {
+        case .calendar: return "calendar"
+        case .taskDetail(_): return "taskDetail"
+        }
+    }
+    
+    var isModal: Bool {
+        switch self {
+        case .calendar: return false
+        case .taskDetail: return true
+        }
+    }
 }

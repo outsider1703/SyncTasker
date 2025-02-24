@@ -22,6 +22,11 @@ struct RootView: View {
         NavigationStack(path: $navigationService.path) {
             CalendarView(viewModel: container.makeCalendarViewModel())
                 .navigationDestination(for: Route.self) { route in
+                    if !route.isModal {
+                        makeView(for: route)
+                    }
+                }
+                .sheet(item: $navigationService.presentedModal) { route in
                     makeView(for: route)
                 }
         }

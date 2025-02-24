@@ -10,7 +10,7 @@ import CloudKit
 
 protocol CoreDataServiceProtocol {
     var viewContext: NSManagedObjectContext { get }
-    func createTask() -> TaskEntity
+    func createTask(_ task: TaskItem) throws
     func saveContext() throws
     func delete(_ object: NSManagedObject) throws
     func fetchTasks() throws -> [TaskEntity]
@@ -83,8 +83,15 @@ class CoreDataService: CoreDataServiceProtocol {
     }
     
     // MARK: - CoreDataServiceProtocol
-    func createTask() -> TaskEntity {
-        return TaskEntity(context: viewContext)
+    
+    func createTask(_ task: TaskItem) throws {
+        let taskEntity = TaskEntity(context: viewContext)
+        taskEntity.update(from: task)
+        do {
+            try viewContext.save()
+        } catch {
+            throw CoreDataError.saveFailed(error)
+        }
     }
     
     func saveContext() throws {

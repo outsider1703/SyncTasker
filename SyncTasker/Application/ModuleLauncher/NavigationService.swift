@@ -19,16 +19,26 @@ protocol NavigationServiceProtocol: AnyObject {
 class NavigationService: ObservableObject, NavigationServiceProtocol {
 
     @Published var path = NavigationPath()
+    @Published var presentedModal: Route?
     
     func navigate(to route: Route) async {
-        path.append(route)
+        if route.isModal {
+            presentedModal = route
+        } else {
+            path.append(route)
+        }
     }
     
     func navigateBack() async {
-        path.removeLast()
+        if presentedModal != nil {
+            presentedModal = nil
+        } else {
+            path.removeLast()
+        }
     }
     
     func navigateToRoot() async {
+        presentedModal = nil
         path.removeLast(path.count)
     }
 }

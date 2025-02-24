@@ -28,6 +28,7 @@ struct TaskListView: View {
     @Binding private var selectedFilter: TaskFilterOption
     @Binding private var errorMessage: String?
     private var taskSections: [TaskGroupSection]
+    private var navigateToTaskDetail: (TaskItem?) -> Void
     
     // MARK: - Initialization
     
@@ -35,12 +36,14 @@ struct TaskListView: View {
         taskSections: [TaskGroupSection],
         selectedSortOption: Binding<TaskSortOption>,
         selectedFilter: Binding<TaskFilterOption>,
-        errorMessage: Binding<String?>
+        errorMessage: Binding<String?>,
+        navigateToTaskDetail: @escaping (TaskItem?) -> Void
     ) {
         self.taskSections = taskSections
         self._selectedSortOption = selectedSortOption
         self._selectedFilter = selectedFilter
         self._errorMessage = errorMessage
+        self.navigateToTaskDetail = navigateToTaskDetail
     }
     
     // MARK: - Body
@@ -59,9 +62,7 @@ struct TaskListView: View {
                             }
                             ForEach(section.tasks) { task in
                                 TaskRowView(task: task)
-                                    .onTapGesture {
-                                        //viewModel.navigateToTaskDetail(task)
-                                    }
+                                    .onTapGesture { navigateToTaskDetail(task) }
                             }
                         }
                     }
@@ -87,9 +88,7 @@ struct TaskListView: View {
     // MARK: - Subviews
     
     private var addButton: some View {
-        Button(action: {
-            //viewModel.addTask()
-        }) {
+        Button(action: { navigateToTaskDetail(nil) }) {
             Label(Constants.addTaskTitle, systemImage: Constants.addIcon)
         }
     }

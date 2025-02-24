@@ -38,6 +38,14 @@ struct TaskItem: Identifiable, Hashable {
             case .high: return "priorityHigh"
             }
         }
+        
+        var icon: String {
+            switch self {
+            case .low: return "gauge.with.dots.needle.33percent"
+            case .medium: return "gauge.with.dots.needle.50percent"
+            case .high: return "gauge.with.dots.needle.67percent"
+            }
+        }
     }
     
     init(
