@@ -115,7 +115,6 @@ struct TaskDatesSection: View {
     
     var body: some View {
         Section {
-            // Appointment Date Selection
             HStack {
                 Text(Constants.appointmentDateTitle)
                 Spacer()
@@ -155,7 +154,6 @@ struct TaskDatesSection: View {
                 }
             }
             
-            // Due Date Picker
             DatePicker(
                 Constants.dueDateTitle,
                 selection: $dueDate,

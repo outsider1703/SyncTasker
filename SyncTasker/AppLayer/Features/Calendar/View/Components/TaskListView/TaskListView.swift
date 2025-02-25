@@ -29,7 +29,8 @@ struct TaskListView: View {
     @Binding private var errorMessage: String?
     private var taskSections: [TaskGroupSection]
     private var navigateToTaskDetail: (TaskItem?) -> Void
-    
+    private let backlogDropped: (UUID) -> Void
+
     // MARK: - Initialization
     
     init(
@@ -37,13 +38,15 @@ struct TaskListView: View {
         selectedSortOption: Binding<TaskSortOption>,
         selectedFilter: Binding<TaskFilterOption>,
         errorMessage: Binding<String?>,
-        navigateToTaskDetail: @escaping (TaskItem?) -> Void
+        navigateToTaskDetail: @escaping (TaskItem?) -> Void,
+        backlogDropped: @escaping (UUID) -> Void
     ) {
         self.taskSections = taskSections
         self._selectedSortOption = selectedSortOption
         self._selectedFilter = selectedFilter
         self._errorMessage = errorMessage
         self.navigateToTaskDetail = navigateToTaskDetail
+        self.backlogDropped = backlogDropped
     }
     
     // MARK: - Body
@@ -74,6 +77,11 @@ struct TaskListView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) { addButton }
                 ToolbarItem(placement: .navigationBarLeading) { filterAndSorting }
+            }
+            .dropDestination(for: String.self) { items, _ in
+                guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
+                backlogDropped(taskId)
+                return true
             }
         }
         .alert(Constants.errorTitle, isPresented: Binding(

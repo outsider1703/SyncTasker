@@ -11,11 +11,11 @@ struct MonthView: View {
     
     // MARK: - Private Properties
     
-    @Binding private var selectedDate: Date
     private var dailyTasks: [Date: [TaskItem]]
     private let calendar = Calendar.current
     private let date: Date
     private let onTaskDropped: (UUID, Date) -> Void
+    private let routeToDailySchedule: (Date, [TaskItem]) -> Void
     
     // MARK: - Initialization
     
@@ -23,12 +23,13 @@ struct MonthView: View {
         date: Date,
         selectedDate: Binding<Date>,
         dailyTasks: [Date: [TaskItem]],
-        onTaskDropped: @escaping (UUID, Date) -> Void
+        onTaskDropped: @escaping (UUID, Date) -> Void,
+        routeToDailySchedule: @escaping (Date, [TaskItem]) -> Void
     ) {
         self.date = date
-        self._selectedDate = selectedDate
         self.onTaskDropped = onTaskDropped
         self.dailyTasks = dailyTasks
+        self.routeToDailySchedule = routeToDailySchedule
     }
     
     // MARK: - Body
@@ -40,9 +41,8 @@ struct MonthView: View {
                     if let date = dayItem.date {
                         DayView(
                             date: date,
-                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
                             tasks: getTasksForDate(date),
-                            onTap: { withAnimation { selectedDate = date } },
+                            onTap: { routeToDailySchedule(date, getTasksForDate(date)) },
                             onTaskDropped: onTaskDropped
                         )
                     }

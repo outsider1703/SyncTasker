@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct TaskItem: Identifiable, Hashable {
     let id: UUID
@@ -31,11 +32,11 @@ struct TaskItem: Identifiable, Hashable {
             }
         }
         
-        var color: String {
+        var color: Color {
             switch self {
-            case .low: return "priorityLow"
-            case .medium: return "priorityMedium"
-            case .high: return "priorityHigh"
+            case .low: return Theme.Colors.priorityLow
+            case .medium: return Theme.Colors.priorityMedium
+            case .high: return Theme.Colors.priorityHigh
             }
         }
         

@@ -13,7 +13,6 @@ struct DayView: View {
     
     private var tasks: [TaskItem] = []
     private let date: Date
-    private let isSelected: Bool
     private let onTap: () -> Void
     private let calendar = Calendar.current
     private let onTaskDropped: (UUID, Date) -> Void
@@ -22,13 +21,11 @@ struct DayView: View {
     
     init(
         date: Date,
-        isSelected: Bool,
         tasks: [TaskItem],
         onTap: @escaping () -> Void,
         onTaskDropped: @escaping (UUID, Date) -> Void
     ) {
         self.date = date
-        self.isSelected = isSelected
         self.tasks = tasks
         self.onTap = onTap
         self.onTaskDropped = onTaskDropped
@@ -39,26 +36,29 @@ struct DayView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack {
-                Text("\(calendar.component(.day, from: date))")
-                    .font(Theme.Typography.bodyFont)
-                    .padding(8)
-                
+                HStack {
+                    Spacer()
+                    Text("\(calendar.component(.day, from: date))")
+                        .font(Theme.Typography.bodyFont)
+                        .padding(8)
+                }
                 ScrollView {
                     VStack(spacing: 4) {
                         ForEach(tasks) { task in
                             TaskRowView(task: task)
                         }
                     }
+                    .padding(.horizontal, 8)
                 }
             }
             .frame(width: 150, height: 150)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Theme.Colors.primary : .white)
+                    .fill(.white)
             )
             .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
         }
-        .foregroundColor(isSelected ? .white : Theme.Colors.primary)
+        .foregroundColor(.black)
         .onTapGesture(perform: onTap)
         .dropDestination(for: String.self) { items, _ in
             guard let taskId = UUID(uuidString: items.first ?? "") else { return false }

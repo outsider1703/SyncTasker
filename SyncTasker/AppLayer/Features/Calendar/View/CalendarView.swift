@@ -50,6 +50,8 @@ struct CalendarView: View {
                             dailyTasks: viewModel.dailyTasks,
                             onTaskDropped: { task, date in
                                 viewModel.updateTaskDate(task: task, to: date)
+                            }, routeToDailySchedule: { date, tasks in
+                                viewModel.navigateToDailySchedule(date, tasks)
                             })
                         .frame(width: 182)
                         
@@ -82,6 +84,8 @@ struct CalendarView: View {
                     errorMessage: $viewModel.errorMessage,
                     taskSections: viewModel.taskSections) { task in
                         viewModel.navigateToTaskDetail(task)
+                    } backlogDropped: { taskId in
+                        viewModel.updateTaskDate(task: taskId, to: nil)
                     }
             }
         }

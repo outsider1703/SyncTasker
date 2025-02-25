@@ -94,13 +94,17 @@ class CalendarViewModel: NSObject, ObservableObject {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
+    func navigateToDailySchedule(_ date: Date, _ tasks: [TaskItem]) {
+        Task { await navigationService.navigate(to: .dailySchedule(date, tasks)) }
+    }
+    
     // MARK: - Public Methods
     
     func applySort(_ option: TaskSortOption) { selectedSortOption = option }
     func applyFilter(_ filter: TaskFilterOption) { selectedFilter = filter }
     func applyGrouping(_ type: TaskGroupType) { selectedGrouping = type }
     
-    func updateTaskDate(task: UUID, to date: Date) {
+    func updateTaskDate(task: UUID, to date: Date?) {
         update(for: task, and: date)
     }
     
@@ -130,7 +134,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func update(for taskId: UUID, and date: Date) {
+    private func update(for taskId: UUID, and date: Date?) {
         guard let task = tasks.first(where: { $0.id == taskId }) else { return }
         let updatedTask = TaskItem(
             id: task.id,

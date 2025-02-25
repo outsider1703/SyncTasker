@@ -47,4 +47,13 @@ class DIContainer {
             navigationService: navigationService
         )
     }
+    
+    func makeDailyScheduleViewModel(date: Date, tasks: [TaskItem]) -> DailyScheduleViewModel {
+        return DailyScheduleViewModel(
+            navigationService: navigationService,
+            feedbackManager: feedbackManager,
+            date: date,
+            tasks: tasks
+        )
+    }
 }
