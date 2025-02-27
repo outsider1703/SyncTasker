@@ -29,6 +29,7 @@ struct TaskRowView: View {
                 .font(Theme.Typography.headlineFont)
                 .foregroundColor(Theme.Colors.primary)
                 .strikethrough(task.isCompleted)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
             if let dueDate = task.dueDate {
                 Text(dueDate, style: .date)

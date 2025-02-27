@@ -35,21 +35,18 @@ struct DayView: View {
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            VStack {
-                HStack {
-                    Spacer()
-                    Text("\(calendar.component(.day, from: date))")
-                        .font(Theme.Typography.bodyFont)
-                        .padding(8)
-                }
-                ScrollView {
-                    VStack(spacing: 4) {
+            HStack(alignment: .top) {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 4) {
                         ForEach(tasks) { task in
                             TaskRowView(task: task)
                         }
                     }
                     .padding(.horizontal, 8)
                 }
+                Text("\(calendar.component(.day, from: date))")
+                    .font(Theme.Typography.bodyFont)
+                    .padding(8)
             }
             .frame(width: 150, height: 150)
             .background(
