@@ -20,6 +20,8 @@ struct TaskStatisticsView: View {
     // MARK: - Private Properties
     
     @State private var isAnimating = false
+    @State private var animatedTotal: Int = 0
+    @State private var timer: Timer? = nil
     private let statistics: TaskStatistics
     
     // MARK: - Initialization
@@ -33,23 +35,48 @@ struct TaskStatisticsView: View {
     var body: some View {
         VStack(spacing: Theme.Layout.spacing) {
             HStack(spacing: Theme.Layout.spacing) {
-                StatCard(title: Constants.totalTasks, value: String(statistics.total), color: Theme.Colors.primary)
-                    .withFadeAnimation(isAnimating: isAnimating)
-                StatCard(title: Constants.completed, value: String(statistics.completed), color: Theme.Colors.success)
-                    .withFadeAnimation(isAnimating: isAnimating)
+                StatCard(
+                    title: Constants.totalTasks,
+                    value: String(animatedTotal),
+                    color: Theme.Colors.primary
+                )
+                .withFadeAnimation(isAnimating: isAnimating)
+                CompletionProgressView(completionRate: statistics.completionRate, isAnimating: isAnimating)
+                    .frame(maxWidth: .infinity)
             }
-            
-            HStack(spacing: Theme.Layout.spacing) {
-                StatCard(title: Constants.overdue, value: String(statistics.overdue), color: Theme.Colors.error)
-                    .withFadeAnimation(isAnimating: isAnimating)
-                StatCard(title: Constants.highPriority, value: String(statistics.highPriority), color: Theme.Colors.accent)
-                    .withFadeAnimation(isAnimating: isAnimating)
-            }
-            
-            CompletionProgressView(completionRate: statistics.completionRate, isAnimating: isAnimating)
         }
         .background(Theme.Colors.background)
-        .onAppear { isAnimating = true }
+        .onAppear {
+            isAnimating = true
+            startCountAnimation()
+        }
+        .onDisappear {
+            timer?.invalidate()
+            timer = nil
+        }
+    }
+    
+    // Add counting animation function
+    private func startCountAnimation() {
+        timer?.invalidate()
+        animatedTotal = 0
+        
+        let duration = 1.0 // Duration in seconds
+        let stepTime = 0.05 // Time between increments
+        let steps = Int(duration / stepTime)
+        var currentStep = 0
+        
+        timer = Timer.scheduledTimer(withTimeInterval: stepTime, repeats: true) { timer in
+            currentStep += 1
+            let progress = Double(currentStep) / Double(steps)
+            
+            if progress >= 1.0 {
+                animatedTotal = statistics.total
+                timer.invalidate()
+            } else {
+                animatedTotal = Int(Double(statistics.total) * progress)
+            }
+        }
     }
 }
 
@@ -84,7 +111,6 @@ private struct StatCard: View {
                 .foregroundColor(color)
                 .fontWeight(.bold)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(color.opacity(0.1))
         .cornerRadius(Theme.Layout.cornerRadius)

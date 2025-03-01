@@ -12,6 +12,10 @@ import SwiftUI
 private enum Constants {
     static let monthTitleScale: CGFloat = 1.2
     static let titleAnimationDuration: Double = 0.3
+    static let gradientHeight: CGFloat = 150
+    static let floatingButtonPadding: CGFloat = 16
+    static let floatingButtonSize: CGFloat = 56
+    static let addIcon = "plus"
 }
 
 struct CalendarView: View {
@@ -25,8 +29,6 @@ struct CalendarView: View {
     @State private var selectedDate = Date()
     @State private var viewType: CalendarViewType = .month
     @State private var isTitleAnimating = false
-    @State private var drawerOffset: CGFloat = DrawerPosition.closed.offset
-    @State private var drawerPosition: DrawerPosition = .closed
     
     // MARK: - Initialization
     
@@ -39,11 +41,20 @@ struct CalendarView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            ZStack(alignment: .leading) {
-                switch viewType {
-                case .month:
-                    HStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
+            switch viewType {
+            case .month:
+                HStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(monthTitle)
+                            .font(Theme.Typography.headlineFont)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
+                            .opacity(isTitleAnimating ? 0.5 : 1.0)
+                            .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
+                            .onTapGesture { switchToYearView() }
+                            .padding(.leading, 16)
+                        
                         MonthView(
                             date: selectedDate,
                             selectedDate: $selectedDate,
@@ -53,42 +64,52 @@ struct CalendarView: View {
                             }, routeToDailySchedule: { date, tasks in
                                 viewModel.navigateToDailySchedule(date, tasks)
                             })
-                        .frame(width: 182)
-                        
-                        VStack(alignment: .leading) {
-                            Text(monthTitle)
-                                .font(Theme.Typography.headlineFont)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
-                                .opacity(isTitleAnimating ? 0.5 : 1.0)
-                                .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
-                                .onTapGesture { switchToYearView() }
-                            TaskStatisticsView(statistics: viewModel.statistics)
-                            
-                            Spacer()
-                        }
                     }
+                    .frame(width: 182)
                     
-                case .year:
-                    YearView(selectedDate: $selectedDate, onMonthSelected: switchToMonthView)
-                        .frame(maxWidth: .infinity)
+                    TaskListView(
+                        taskSections: viewModel.taskSections,
+                        selectedSortOption: $viewModel.selectedSortOption,
+                        selectedFilter: $viewModel.selectedFilter,
+                        errorMessage: $viewModel.errorMessage,
+                        navigateToTaskDetail: { task in
+                            viewModel.navigateToTaskDetail(task)
+                        },
+                        backlogDropped: { taskId in
+                            viewModel.updateTaskDate(task: taskId, to: nil)
+                        }
+                    )
                 }
+                
+            case .year:
+                YearView(selectedDate: $selectedDate, statistics: viewModel.statistics, onMonthSelected: switchToMonthView)
+                    .frame(maxWidth: .infinity)
             }
             
-            if viewType == .month {
-                DrawerView(
-                    offset: $drawerOffset,
-                    position: $drawerPosition,
-                    selectedSortOption: $viewModel.selectedSortOption,
-                    selectedFilter: $viewModel.selectedFilter,
-                    errorMessage: $viewModel.errorMessage,
-                    taskSections: viewModel.taskSections) { task in
-                        viewModel.navigateToTaskDetail(task)
-                    } backlogDropped: { taskId in
-                        viewModel.updateTaskDate(task: taskId, to: nil)
-                    }
+            VStack(spacing: 0) {
+                LinearGradient(
+                    gradient: Gradient(colors: [.white.opacity(0), .white.opacity(0.8), .white]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: Constants.gradientHeight)
+            }
+            .frame(maxWidth: .infinity)
+            
+            HStack {
+                Spacer()
+                Button(action: { viewModel.navigateToTaskDetail(nil) }) {
+                    Image(systemName: Constants.addIcon)
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .frame(width: Constants.floatingButtonSize, height: Constants.floatingButtonSize)
+                        .background(Circle().fill(Theme.Colors.accent))
+                        .shadow(radius: 4)
+                }
+                .padding([.bottom, .trailing], 32)
             }
         }
+        .ignoresSafeArea(edges: .bottom)
     }
     
     // MARK: - Subviews

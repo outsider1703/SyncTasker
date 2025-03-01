@@ -30,9 +30,10 @@ struct DayCell: View {
     var body: some View {
         if let date = dayItem.date {
             let isCurrentDate = calendar.isDate(date, inSameDayAs: selectedDate)
-            RoundedRectangle(cornerRadius: 1)
+            RoundedRectangle(cornerRadius: 2)
+                .fill(isCurrentDate ? Theme.Colors.primary.opacity(0.2) : Color.clear)
                 .frame(width: 16, height: 16)
-                .background(isCurrentDate ? Theme.Colors.primary.opacity(0.2) : Color.clear)
+                .border(.black)
         } else {
             Rectangle()
                 .fill(Color.clear)
@@ -40,3 +41,4 @@ struct DayCell: View {
         }
     }
 }
+

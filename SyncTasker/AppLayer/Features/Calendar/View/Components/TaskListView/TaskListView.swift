@@ -15,7 +15,6 @@ private enum Constants {
     static let errorTitle = "Error"
     static let okButton = "OK"
     static let addTaskTitle = "Add Task"
-    static let addIcon = "plus"
     static let sortTitle = "Sort By"
     static let filterTitle = "Filter"
 }
@@ -52,37 +51,41 @@ struct TaskListView: View {
     // MARK: - Body
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                ScrollView {
-                    LazyVStack(spacing: Theme.Layout.spacing) {
-                        ForEach(taskSections) { section in
-                            if !section.title.isEmpty {
-                                Text(section.title)
-                                    .font(Theme.Typography.headlineFont)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal)
-                            }
-                            ForEach(section.tasks) { task in
-                                TaskRowView(task: task)
-                                    .onTapGesture { navigateToTaskDetail(task) }
-                            }
+        VStack(spacing: 0) {
+            HStack {
+                Text(Constants.navigationTitle)
+                    .font(Theme.Typography.headlineFont)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                filterAndSorting
+            }
+            .padding(.horizontal)
+            
+            Divider()
+                .padding(.vertical, 4)
+            
+            ScrollView(showsIndicators: false) {
+                LazyVStack(spacing: Theme.Layout.spacing) {
+                    ForEach(taskSections) { section in
+                        if !section.title.isEmpty {
+                            Text(section.title)
+                                .font(Theme.Typography.headlineFont)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal)
+                        }
+                        ForEach(section.tasks) { task in
+                            TaskRowView(task: task)
+                                .onTapGesture { navigateToTaskDetail(task) }
                         }
                     }
-                    .padding()
                 }
+                .padding()
             }
-            .navigationTitle(Constants.navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { addButton }
-                ToolbarItem(placement: .navigationBarLeading) { filterAndSorting }
-            }
-            .dropDestination(for: String.self) { items, _ in
-                guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
-                backlogDropped(taskId)
-                return true
-            }
+        }
+        .dropDestination(for: String.self) { items, _ in
+            guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
+            backlogDropped(taskId)
+            return true
         }
         .alert(Constants.errorTitle, isPresented: Binding(
             get: { errorMessage != nil },
@@ -94,12 +97,6 @@ struct TaskListView: View {
     }
     
     // MARK: - Subviews
-    
-    private var addButton: some View {
-        Button(action: { navigateToTaskDetail(nil) }) {
-            Label(Constants.addTaskTitle, systemImage: Constants.addIcon)
-        }
-    }
     
     private var filterAndSorting: some View {
         Menu {

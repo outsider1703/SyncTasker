@@ -45,9 +45,7 @@ struct MonthGridItem: View {
                         ForEach(0..<7) { weekday in
                             let index = week * 7 + weekday
                             if index < days.count {
-                                DayCell(dayItem: days[index],
-                                        selectedDate: selectedDate,
-                                        calendar: calendar)
+                                DayCell(dayItem: days[index], selectedDate: selectedDate, calendar: calendar)
                             }
                         }
                     }
