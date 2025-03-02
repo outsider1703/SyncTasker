@@ -45,7 +45,7 @@ struct CalendarView: View {
             switch viewType {
             case .month:
                 HStack(spacing: 0) {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 0) {
                         Text(monthTitle)
                             .font(Theme.Typography.headlineFont)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -55,6 +55,9 @@ struct CalendarView: View {
                             .onTapGesture { switchToYearView() }
                             .padding(.leading, 16)
                         
+                        Divider()
+                            .padding(.vertical, 4)
+
                         MonthView(
                             date: selectedDate,
                             selectedDate: $selectedDate,
