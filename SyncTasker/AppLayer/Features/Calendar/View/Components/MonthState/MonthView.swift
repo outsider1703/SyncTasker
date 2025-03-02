@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+extension Calendar {
+    func startOfMonth(for date: Date) -> Date {
+        let components = dateComponents([.year, .month], from: date)
+        return self.date(from: components) ?? date
+    }
+}
+
 struct MonthView: View {
     
     // MARK: - Private Properties
@@ -20,18 +27,21 @@ struct MonthView: View {
     private let date: Date
     private let onTaskDropped: (UUID, Date) -> Void
     private let routeToDailySchedule: (Date, [TaskItem]) -> Void
-    
+    @State private var visibleMonth: Date?
+    @Binding var currentMonth: Date
     
     // MARK: - Initialization
     
     init(
         date: Date,
         selectedDate: Binding<Date>,
+        currentMonth: Binding<Date>,
         dailyTasks: [Date: [TaskItem]],
         onTaskDropped: @escaping (UUID, Date) -> Void,
         routeToDailySchedule: @escaping (Date, [TaskItem]) -> Void
     ) {
         self.date = date
+        self._currentMonth = currentMonth
         self.onTaskDropped = onTaskDropped
         self.dailyTasks = dailyTasks
         self.routeToDailySchedule = routeToDailySchedule
@@ -47,7 +57,10 @@ struct MonthView: View {
                     stackedDisplayCount: 3,
                     opacityDisplayCount: 2,
                     disablesOpacityEffect: false,
-                    itemHeight: 150
+                    itemHeight: 150,
+                    onMonthChanged: { month in
+                        updateMonthTitle(for: month)
+                    }
                 ) { dayItem in
                     if let date = dayItem.date {
                         DayView(
@@ -56,10 +69,8 @@ struct MonthView: View {
                             onTap: { routeToDailySchedule(date, getTasksForDate(date)) },
                             onTaskDropped: onTaskDropped
                         )
-                    } else {
-                        Rectangle()
-                            .fill(.clear)
-                            .frame(height: 150)
+                    } else if let nextDate = getNextDate(for: dayItem, in: days) {
+                        MonthSeparatorView(date: nextDate)
                     }
                 }
             }
@@ -68,6 +79,19 @@ struct MonthView: View {
             generateMonths()
             days = getAllMonthsDays()
         }
+    }
+    
+    // MonthSeparatorView component
+    private func MonthSeparatorView(date: Date) -> some View {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        
+        return Text(dateFormatter.string(from: date))
+            .font(Theme.Typography.headlineFont)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .frame(height: 150)
+            .background(Color.white)
     }
     
     // MARK: - Private Methods
@@ -112,6 +136,25 @@ struct MonthView: View {
         
         return allDays
     }
+    
+    private func getNextDate(for item: DayItem, in items: [DayItem]) -> Date? {
+        if let index = items.firstIndex(where: { $0.id == item.id }),
+           index < items.count - 1,
+           let date = items[index + 1].date {
+            return date
+        }
+        return nil
+    }
+    
+    private func updateMonthTitle(for month: Date) {
+        // Обновляем месяц только если это новый месяц
+        if month != visibleMonth {
+            visibleMonth = month
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentMonth = month
+            }
+        }
+    }
 }
 
 @MainActor
@@ -121,6 +164,7 @@ struct StackedCards<Content: View>: View {
     var opacityDisplayCount: Int
     var disablesOpacityEffect: Bool
     var itemHeight: CGFloat
+    var onMonthChanged: (Date) -> Void
     @ViewBuilder var content: (DayItem) -> Content
     
     var body: some View {
@@ -128,16 +172,40 @@ struct StackedCards<Content: View>: View {
             ScrollView(.vertical, showsIndicators: false) {
                 LazyVStack(spacing: 8) {
                     ForEach(items) { item in
-                        content(item)
-                            .frame(height: itemHeight)
-                            .visualEffect { content, proxy in
-                                content
-                                    .opacity(disablesOpacityEffect == true ? 1 : calculateOpacity(proxy))
-                                    .scaleEffect(calculateScale(proxy))
-                                    .offset(y: calculateOffset(proxy))
-                            }
-                            .zIndex(-zIndex(item))
-                            .id(item.id)
+                        GeometryReader { itemProxy in
+                            content(item)
+                                .frame(height: itemHeight)
+                                .visualEffect { content, geometryProxy in
+                                    content
+                                        .opacity(disablesOpacityEffect == true ? 1 : calculateOpacity(geometryProxy))
+                                        .scaleEffect(calculateScale(geometryProxy))
+                                        .offset(y: calculateOffset(geometryProxy))
+                                }
+                                .zIndex(-zIndex(item))
+                                .id(item.id)
+                                .onChange(of: itemProxy.frame(in: .scrollView).minY) { oldValue, newValue in
+                                    // Отслеживаем только разделители
+                                    if item.date == nil {
+                                        let isOldVisible = oldValue >= 0 && oldValue <= UIScreen.main.bounds.height
+                                        let isNewVisible = newValue >= 0 && newValue <= UIScreen.main.bounds.height
+                                        
+                                        // Когда разделитель исчезает
+                                        if isOldVisible && !isNewVisible {
+                                            // Если скролл вверх
+                                            if newValue < 0 {
+                                                if let nextDate = getNextDate(for: item, in: items) {
+                                                    onMonthChanged(nextDate)
+                                                }
+                                            }
+                                            // Если скролл вниз
+                                            else if let prevDate = getPreviousDate(for: item, in: items) {
+                                                onMonthChanged(prevDate)
+                                            }
+                                        }
+                                    }
+                                }
+                        }
+                        .frame(height: itemHeight)
                     }
                 }
                 .padding(.top, itemHeight * CGFloat(stackedDisplayCount))
@@ -174,6 +242,24 @@ struct StackedCards<Content: View>: View {
         
         let progress = min(-minY / itemHeight, CGFloat(opacityDisplayCount))
         return 1 - (progress * 0.3)
+    }
+    
+    private func getNextDate(for item: DayItem, in items: [DayItem]) -> Date? {
+        if let index = items.firstIndex(where: { $0.id == item.id }),
+           index < items.count - 1,
+           let date = items[index + 1].date {
+            return date
+        }
+        return nil
+    }
+    
+    private func getPreviousDate(for item: DayItem, in items: [DayItem]) -> Date? {
+        if let index = items.firstIndex(where: { $0.id == item.id }),
+           index > 0,
+           let date = items[index - 1].date {
+            return date
+        }
+        return nil
     }
     
     private func zIndex(_ item: DayItem) -> Double {

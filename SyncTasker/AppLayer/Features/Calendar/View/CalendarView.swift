@@ -51,7 +51,7 @@ struct CalendarView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
                             .opacity(isTitleAnimating ? 0.5 : 1.0)
-                            .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: isTitleAnimating)
+                            .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: selectedDate)
                             .onTapGesture { switchToYearView() }
                             .padding(.leading, 16)
                         
@@ -61,6 +61,7 @@ struct CalendarView: View {
                         MonthView(
                             date: selectedDate,
                             selectedDate: $selectedDate,
+                            currentMonth: $selectedDate,
                             dailyTasks: viewModel.dailyTasks,
                             onTaskDropped: { task, date in
                                 viewModel.updateTaskDate(task: task, to: date)
