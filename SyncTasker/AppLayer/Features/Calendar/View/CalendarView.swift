@@ -46,7 +46,7 @@ struct CalendarView: View {
             case .month:
                 HStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(monthTitle)
+                        Text(selectedDate.toString(format: viewType == .month ? "MMMM yyyy" : "yyyy"))
                             .font(Theme.Typography.headlineFont)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
@@ -59,8 +59,7 @@ struct CalendarView: View {
                             .padding(.vertical, 4)
 
                         MonthView(
-                            date: selectedDate,
-                            selectedDate: $selectedDate,
+                            selectedDate: selectedDate,
                             currentMonth: $selectedDate,
                             dailyTasks: viewModel.dailyTasks,
                             onTaskDropped: { task, date in
@@ -115,15 +114,7 @@ struct CalendarView: View {
         }
         .ignoresSafeArea(edges: .bottom)
     }
-    
-    // MARK: - Subviews
-    
-    private var monthTitle: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = viewType == .month ? "MMMM yyyy" : "yyyy"
-        return dateFormatter.string(from: selectedDate)
-    }
-    
+        
     // MARK: - Private Methods
     
     private func switchToYearView() {

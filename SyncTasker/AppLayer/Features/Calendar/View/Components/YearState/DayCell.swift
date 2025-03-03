@@ -12,24 +12,18 @@ struct DayCell: View {
     // MARK: - Private Properties
     
     private let dayItem: DayItem
-    private let selectedDate: Date
-    private let calendar: Calendar
     
     // MARK: - Initialization
     
     init(
-        dayItem: DayItem,
-        selectedDate: Date,
-        calendar: Calendar
+        dayItem: DayItem
     ) {
         self.dayItem = dayItem
-        self.selectedDate = selectedDate
-        self.calendar = calendar
     }
     
     var body: some View {
         if let date = dayItem.date {
-            let isCurrentDate = calendar.isDate(date, inSameDayAs: selectedDate)
+            let isCurrentDate = Calendar.current.isDate(date, inSameDayAs: Date())
             RoundedRectangle(cornerRadius: 2)
                 .fill(isCurrentDate ? Theme.Colors.primary.opacity(0.2) : Color.clear)
                 .frame(width: 16, height: 16)

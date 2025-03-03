@@ -36,7 +36,7 @@ struct YearView: View {
             ScrollView {
                 LazyVGrid(columns: monthColumns, spacing: 20) {
                     ForEach(getMonthsInYear(), id: \.self) { month in
-                        MonthGridItem(month: month, selectedDate: selectedDate, calendar: calendar, onMonthSelected: onMonthSelected)
+                        MonthGridItem(month: month, onMonthSelected: onMonthSelected)
                     }
                 }
                 .padding(.horizontal, 16)
