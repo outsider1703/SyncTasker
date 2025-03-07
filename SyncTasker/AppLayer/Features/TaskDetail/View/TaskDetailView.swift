@@ -20,6 +20,14 @@ private enum Constants {
     static let cancelButton = "Cancel"
     static let errorTitle = "Error"
     static let okButton = "OK"
+    static let startDateTitle = "Начало"
+    static let endDateTitle = "Конец"
+    static let allDayTitle = "Весь день"
+    static let travelTimeTitle = "Время в пути"
+    static let dateTitle = "Дата"
+    static let timeTitle = "Время"
+    static let selectDate = "Выбрать дату"
+    static let selectTime = "Выбрать время"
 }
 
 struct TaskDetailView: View {
@@ -41,7 +49,12 @@ struct TaskDetailView: View {
         NavigationView {
             Form {
                 TaskTitleSection(title: $viewModel.title, description: $viewModel.taskDescription)
-                TaskDatesSection(appointmentDate: $viewModel.appointmentDate, dueDate: $viewModel.dueDate)
+                TaskDatesSection(
+                    startDate: $viewModel.startDate,
+                    endDate: $viewModel.endDate,
+                    isAllDay: $viewModel.isAllDay,
+                    travelTime: $viewModel.travelTime
+                )
                 TaskPropertiesSection(priority: $viewModel.priority, isCompleted: $viewModel.isCompleted, isEditMode: viewModel.isEditMode)
             }
             .navigationTitle(viewModel.isEditMode ? Constants.editTitle : Constants.createTitle)
@@ -89,7 +102,7 @@ struct TaskTitleSection: View {
             
             TextEditor(text: $description)
                 .font(Theme.Typography.bodyFont)
-                .frame(minHeight: 100)
+                .frame(minHeight: 40)
                 .placeholder(when: description.isEmpty) {
                     Text(Constants.descriptionPlaceholder)
                         .foregroundColor(Theme.Colors.secondary)
@@ -101,66 +114,250 @@ struct TaskTitleSection: View {
 // MARK: - Dates Section View
 
 struct TaskDatesSection: View {
-    @Binding var appointmentDate: Date?
-    @Binding var dueDate: Date
-    @State private var showDatePicker = false
+    @Binding var startDate: Date
+    @Binding var endDate: Date
+    @Binding var isAllDay: Bool
+    @Binding var travelTime: TravelTime
+    
+    // Используем enum вместо множества boolean переменных
+    private enum ActivePicker {
+        case none
+        case startDate
+        case startTime
+        case endDate
+        case endTime
+        case travelTime
+    }
+    
+    @State private var activePicker: ActivePicker = .none
     
     init(
-        appointmentDate: Binding<Date?>,
-        dueDate: Binding<Date>
+        startDate: Binding<Date>,
+        endDate: Binding<Date>,
+        isAllDay: Binding<Bool>,
+        travelTime: Binding<TravelTime>
     ) {
-        self._appointmentDate = appointmentDate
-        self._dueDate = dueDate
+        self._startDate = startDate
+        self._endDate = endDate
+        self._isAllDay = isAllDay
+        self._travelTime = travelTime
     }
     
     var body: some View {
         Section {
-            HStack {
-                Text(Constants.appointmentDateTitle)
-                Spacer()
-                
-                HStack(spacing: 8) {
-                    if showDatePicker {
-                        DatePicker(
-                            "",
-                            selection: Binding(
-                                get: { appointmentDate ?? Date() },
-                                set: { appointmentDate = $0 }
-                            ),
-                            displayedComponents: [.date]
-                        )
-                        .labelsHidden()
-                        .frame(width: 120)
-                    } else {
-                        Text(appointmentDate?.formatted(date: .abbreviated, time: .omitted) ?? "Select date")
-                            .foregroundColor(appointmentDate == nil ? .blue : .primary)
-                            .onTapGesture {
-                                if appointmentDate == nil {
-                                    appointmentDate = Date()
-                                }
-                                showDatePicker = true
-                            }
-                    }
-                    
-                    if appointmentDate != nil {
-                        Button(action: {
-                            appointmentDate = nil
-                            showDatePicker = false
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
+            // Toggle для "Весь день"
+            Toggle(Constants.allDayTitle, isOn: $isAllDay)
+                .onChange(of: isAllDay) { oldValue, newValue in
+                    if newValue {
+                        // При включении режима "весь день" закрываем все пикеры
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            activePicker = .none
                         }
                     }
                 }
+            
+            // Секция начала
+            startDateSection
+            
+            // Секция конца
+            endDateSection
+            
+            // Время в пути (только если не весь день)
+            if !isAllDay {
+                travelTimeSection
+            }
+        }
+    }
+    
+    private var startDateSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Constants.startDateTitle)
+                .font(Theme.Typography.titleFont)
+                .foregroundColor(Theme.Colors.primary)
+            
+            HStack(spacing: 12) {
+                // Кнопка выбора даты
+                dateButton(date: startDate, onTap: { togglePicker(.startDate) })
+                
+                // Кнопка выбора времени (если не весь день)
+                if !isAllDay {
+                    timeButton(date: startDate, onTap: { togglePicker(.startTime) })
+                }
             }
             
-            DatePicker(
-                Constants.dueDateTitle,
-                selection: $dueDate,
-                in: (appointmentDate ?? Date())...,
-                displayedComponents: [.date, .hourAndMinute]
-            )
+            // Пикер даты
+            if activePicker == .startDate {
+                DatePicker("", selection: $startDate, displayedComponents: [.date])
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .labelsHidden()
+                    .onChange(of: startDate) { oldValue, newValue in
+                        handleStartDateChange(newValue)
+                    }
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+            }
+            
+            // Пикер времени
+            if activePicker == .startTime && !isAllDay {
+                DatePicker("", selection: $startDate, displayedComponents: [.hourAndMinute])
+                    .datePickerStyle(WheelDatePickerStyle())
+                    .labelsHidden()
+                    .frame(maxHeight: 150)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+            }
         }
+        .padding(.vertical, 4)
+    }
+    
+    private var endDateSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(Constants.endDateTitle)
+                .font(Theme.Typography.titleFont)
+                .foregroundColor(Theme.Colors.primary)
+            
+            HStack(spacing: 12) {
+                // Кнопка выбора даты
+                dateButton(date: endDate, onTap: { togglePicker(.endDate) })
+                
+                // Кнопка выбора времени (если не весь день)
+                if !isAllDay {
+                    timeButton(date: endDate, onTap: { togglePicker(.endTime) })
+                }
+            }
+            
+            // Пикер даты
+            if activePicker == .endDate {
+                DatePicker("", selection: $endDate, in: startDate..., displayedComponents: [.date])
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .labelsHidden()
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+            }
+            
+            // Пикер времени
+            if activePicker == .endTime && !isAllDay {
+                let range = Calendar.current.isDate(startDate, inSameDayAs: endDate) ? startDate... : Date.distantPast...
+                DatePicker("", selection: $endDate, in: range, displayedComponents: [.hourAndMinute])
+                    .datePickerStyle(WheelDatePickerStyle())
+                    .labelsHidden()
+                    .frame(maxHeight: 150)
+                    .transition(.asymmetric(
+                        insertion: .opacity.combined(with: .move(edge: .top)),
+                        removal: .opacity.combined(with: .move(edge: .top))
+                    ))
+            }
+        }
+        .padding(.vertical, 4)
+    }
+    
+    private func togglePicker(_ picker: ActivePicker) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            activePicker = activePicker == picker ? .none : picker
+        }
+    }
+    
+    private func handleStartDateChange(_ newDate: Date) {
+        // Если дата начала становится позже даты окончания - корректируем
+        if Calendar.current.compare(newDate, to: endDate, toGranularity: .day) == .orderedDescending {
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.year, .month, .day], from: newDate)
+            let endComponents = calendar.dateComponents([.hour, .minute], from: endDate)
+            
+            var newEndComponents = components
+            newEndComponents.hour = endComponents.hour
+            newEndComponents.minute = endComponents.minute
+            
+            if let newEndDate = calendar.date(from: newEndComponents) {
+                endDate = newEndDate
+            }
+        }
+    }
+    
+    // Кнопка выбора даты
+    private func dateButton(date: Date, onTap: @escaping () -> Void) -> some View {
+        Button(action: onTap) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.system(size: 14))
+                    .foregroundColor(Theme.Colors.accent)
+                Text(date.formatted(date: .abbreviated, time: .omitted))
+                    .font(Theme.Typography.bodyFont)
+                    .foregroundColor(Theme.Colors.primary)
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(8)
+        }
+    }
+    
+    // Кнопка выбора времени
+    private func timeButton(date: Date, onTap: @escaping () -> Void) -> some View {
+        Button(action: onTap) {
+            HStack {
+                Image(systemName: "clock")
+                    .font(.system(size: 14))
+                    .foregroundColor(Theme.Colors.accent)
+                Text(date.formatted(date: .omitted, time: .shortened))
+                    .font(Theme.Typography.bodyFont)
+                    .foregroundColor(Theme.Colors.primary)
+            }
+            .padding(.vertical, 6)
+            .padding(.horizontal, 10)
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(8)
+        }
+    }
+    
+    // Секция времени в пути
+    private var travelTimeSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(Constants.travelTimeTitle)
+                    .font(Theme.Typography.titleFont)
+                    .foregroundColor(Theme.Colors.primary)
+                
+                Spacer()
+                
+                Button(action: { togglePicker(.travelTime) }) {
+                    HStack {
+                        Text(travelTime.title)
+                            .font(Theme.Typography.bodyFont)
+                            .foregroundColor(Theme.Colors.accent)
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.Colors.accent)
+                            .rotationEffect(Angle(degrees: activePicker == .travelTime ? 180 : 0))
+                    }
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 10)
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
+                }
+            }
+            
+            if activePicker == .travelTime {
+                Picker("", selection: $travelTime) {
+                    ForEach(TravelTime.allCases) { time in
+                        Text(time.title).tag(time)
+                    }
+                }
+                .pickerStyle(WheelPickerStyle())
+                .frame(maxHeight: 150)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .move(edge: .top))
+                ))
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 

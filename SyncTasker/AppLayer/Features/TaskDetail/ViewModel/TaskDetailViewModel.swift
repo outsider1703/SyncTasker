@@ -19,8 +19,11 @@ class TaskDetailViewModel: ObservableObject {
     
     @Published var title: String = ""
     @Published var taskDescription: String = ""
-    @Published var dueDate: Date = Date()
-    @Published var appointmentDate: Date?
+    // Заменяем старые даты на новые
+    @Published var startDate: Date = Date()
+    @Published var endDate: Date = Date().addingTimeInterval(3600) // Конец по умолчанию через час
+    @Published var isAllDay: Bool = false
+    @Published var travelTime: TravelTime = .none
     @Published var isCompleted: Bool = false
     @Published var priority: TaskItem.Priority = .medium
     @Published var errorMessage: String?
@@ -41,8 +44,18 @@ class TaskDetailViewModel: ObservableObject {
         if let task = task {
             self.title = task.title
             self.taskDescription = task.description ?? ""
-            self.dueDate = task.dueDate ?? Date()
-            self.appointmentDate = task.appointmentDate
+            
+            // Инициализируем новые поля на основе существующей задачи
+            // Для обратной совместимости используем старые поля
+            // В будущем модель TaskItem нужно будет также обновить
+            if let appointmentDate = task.appointmentDate {
+                self.startDate = appointmentDate
+                self.endDate = task.dueDate ?? appointmentDate.addingTimeInterval(3600)
+            } else {
+                self.startDate = task.dueDate ?? Date()
+                self.endDate = (task.dueDate ?? Date()).addingTimeInterval(3600)
+            }
+            
             self.isCompleted = task.isCompleted
             self.priority = task.priority
         }
@@ -54,6 +67,33 @@ class TaskDetailViewModel: ObservableObject {
         await navigationService.navigateBack()
     }
         
+    // MARK: - Helper Methods
+    
+    func setAllDayTimes() {
+        if isAllDay {
+            // Устанавливаем время начала на 00:00
+            let calendar = Calendar.current
+            var startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
+            startComponents.hour = 0
+            startComponents.minute = 0
+            startComponents.second = 0
+            
+            // Устанавливаем время конца на 23:59
+            var endComponents = calendar.dateComponents([.year, .month, .day], from: endDate)
+            endComponents.hour = 23
+            endComponents.minute = 59
+            endComponents.second = 59
+            
+            if let newStartDate = calendar.date(from: startComponents) {
+                startDate = newStartDate
+            }
+            
+            if let newEndDate = calendar.date(from: endComponents) {
+                endDate = newEndDate
+            }
+        }
+    }
+    
     // MARK: - Public Methods
     
     func createOrEditTask() async {
@@ -62,16 +102,22 @@ class TaskDetailViewModel: ObservableObject {
             return
         }
 
+        // Установить корректное время для режима 'весь день'
+        if isAllDay {
+            setAllDayTimes()
+        }
+
         let task = TaskItem(
             id: existingTask?.id ?? UUID(),
             title: title,
             description: taskDescription.isEmpty ? nil : taskDescription,
-            dueDate: dueDate,
+            dueDate: endDate, // Используем endDate вместо dueDate
             isCompleted: isCompleted,
             priority: priority,
             createdAt: existingTask?.createdAt ?? Date(),
             updatedAt: Date(),
-            appointmentDate: appointmentDate
+            appointmentDate: startDate // Используем startDate вместо appointmentDate
+            // В будущем можно добавить поля isAllDay и travelTime в модель TaskItem
         )
         
         do {
