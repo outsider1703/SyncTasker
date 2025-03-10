@@ -15,6 +15,8 @@ private enum Constants {
     static let dueDateTitle = "Due Date"
     static let appointmentDateTitle = "Appointment Date"
     static let priorityTitle = "Priority"
+    static let repeatTitle = "Repeat"
+    static let reminderTitle = "Reminder"
     static let isCompletedTitle = "Completed"
     static let saveButton = "Save"
     static let cancelButton = "Cancel"
@@ -55,7 +57,13 @@ struct TaskDetailView: View {
                     isAllDay: $viewModel.isAllDay,
                     travelTime: $viewModel.travelTime
                 )
-                TaskPropertiesSection(priority: $viewModel.priority, isCompleted: $viewModel.isCompleted, isEditMode: viewModel.isEditMode)
+                TaskPropertiesSection(
+                    priority: $viewModel.priority,
+                    repetition: $viewModel.repetition,
+                    reminder: $viewModel.reminder,
+                    isCompleted: $viewModel.isCompleted,
+                    isEditMode: viewModel.isEditMode
+                )
             }
             .navigationTitle(viewModel.isEditMode ? Constants.editTitle : Constants.createTitle)
             .navigationBarTitleDisplayMode(.inline)
@@ -119,7 +127,6 @@ struct TaskDatesSection: View {
     @Binding var isAllDay: Bool
     @Binding var travelTime: TravelTime
     
-    // Используем enum вместо множества boolean переменных
     private enum ActivePicker {
         case none
         case startDate
@@ -171,11 +178,11 @@ struct TaskDatesSection: View {
     
     private var startDateSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(Constants.startDateTitle)
-                .font(Theme.Typography.titleFont)
-                .foregroundColor(Theme.Colors.primary)
-            
             HStack(spacing: 12) {
+                Text(Constants.startDateTitle)
+                    .font(Theme.Typography.bodyFont)
+                    .foregroundColor(Theme.Colors.primary)
+
                 // Кнопка выбора даты
                 dateButton(date: startDate, onTap: { togglePicker(.startDate) })
                 
@@ -216,11 +223,11 @@ struct TaskDatesSection: View {
     
     private var endDateSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(Constants.endDateTitle)
-                .font(Theme.Typography.titleFont)
-                .foregroundColor(Theme.Colors.primary)
-            
             HStack(spacing: 12) {
+                Text(Constants.endDateTitle)
+                    .font(Theme.Typography.bodyFont)
+                    .foregroundColor(Theme.Colors.primary)
+
                 // Кнопка выбора даты
                 dateButton(date: endDate, onTap: { togglePicker(.endDate) })
                 
@@ -318,43 +325,12 @@ struct TaskDatesSection: View {
     
     // Секция времени в пути
     private var travelTimeSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(Constants.travelTimeTitle)
-                    .font(Theme.Typography.titleFont)
-                    .foregroundColor(Theme.Colors.primary)
-                
-                Spacer()
-                
-                Button(action: { togglePicker(.travelTime) }) {
-                    HStack {
-                        Text(travelTime.title)
-                            .font(Theme.Typography.bodyFont)
-                            .foregroundColor(Theme.Colors.accent)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12))
-                            .foregroundColor(Theme.Colors.accent)
-                            .rotationEffect(Angle(degrees: activePicker == .travelTime ? 180 : 0))
-                    }
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 10)
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(8)
+        VStack {
+            Picker(Constants.travelTimeTitle, selection: $travelTime) {
+                ForEach(TravelTime.allCases, id: \.self) { time in
+                    Label(time.title, systemImage: "clock")
+                        .tag(time)
                 }
-            }
-            
-            if activePicker == .travelTime {
-                Picker("", selection: $travelTime) {
-                    ForEach(TravelTime.allCases) { time in
-                        Text(time.title).tag(time)
-                    }
-                }
-                .pickerStyle(WheelPickerStyle())
-                .frame(maxHeight: 150)
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .move(edge: .top)),
-                    removal: .opacity.combined(with: .move(edge: .top))
-                ))
             }
         }
         .padding(.vertical, 4)
@@ -366,30 +342,52 @@ struct TaskDatesSection: View {
 struct TaskPropertiesSection: View {
     
     @Binding var priority: TaskItem.Priority
+    @Binding var repetition: TaskItem.Repetition
+    @Binding var reminder: TaskItem.Reminder
     @Binding var isCompleted: Bool
     let isEditMode: Bool
     
     init(
         priority: Binding<TaskItem.Priority>,
+        repetition: Binding<TaskItem.Repetition>,
+        reminder: Binding<TaskItem.Reminder>,
         isCompleted: Binding<Bool>,
         isEditMode: Bool
     ) {
         self._priority = priority
+        self._repetition = repetition
+        self._reminder = reminder
         self._isCompleted = isCompleted
         self.isEditMode = isEditMode
     }
     
     var body: some View {
         Section {
-            Picker(Constants.priorityTitle, selection: $priority) {
-                ForEach(TaskItem.Priority.allCases, id: \.self) { priority in
-                    Label(priority.title, systemImage: priority.icon)
-                        .tag(priority)
+            VStack {
+                Picker(Constants.priorityTitle, selection: $priority) {
+                    ForEach(TaskItem.Priority.allCases, id: \.self) { priority in
+                        Label(priority.title, systemImage: priority.icon)
+                            .tag(priority)
+                    }
                 }
-            }
-            
-            if isEditMode {
-                Toggle(Constants.isCompletedTitle, isOn: $isCompleted)
+                
+                Picker(Constants.repeatTitle, selection: $repetition) {
+                    ForEach(TaskItem.Repetition.allCases, id: \.self) { repetition in
+                        Label(repetition.rawValue, systemImage: "repeat")
+                            .tag(repetition)
+                    }
+                }
+                
+                Picker(Constants.reminderTitle, selection: $reminder) {
+                    ForEach(TaskItem.Reminder.allCases, id: \.self) { reminder in
+                        Label(reminder.rawValue, systemImage: "clock")
+                            .tag(reminder)
+                    }
+                }
+                
+                if isEditMode {
+                    Toggle(Constants.isCompletedTitle, isOn: $isCompleted)
+                }
             }
         }
     }

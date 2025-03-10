@@ -19,13 +19,14 @@ class TaskDetailViewModel: ObservableObject {
     
     @Published var title: String = ""
     @Published var taskDescription: String = ""
-    // Заменяем старые даты на новые
     @Published var startDate: Date = Date()
     @Published var endDate: Date = Date().addingTimeInterval(3600) // Конец по умолчанию через час
     @Published var isAllDay: Bool = false
     @Published var travelTime: TravelTime = .none
     @Published var isCompleted: Bool = false
     @Published var priority: TaskItem.Priority = .medium
+    @Published var repetition: TaskItem.Repetition = .none
+    @Published var reminder: TaskItem.Reminder = .none
     @Published var errorMessage: String?
     
     var isEditMode: Bool { existingTask != nil }

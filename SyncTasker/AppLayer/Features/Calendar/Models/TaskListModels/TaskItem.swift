@@ -15,6 +15,8 @@ struct TaskItem: Identifiable, Hashable {
     var dueDate: Date?
     var isCompleted: Bool
     var priority: Priority
+    var repetition: Repetition
+    var reminder: Reminder
     var createdAt: Date
     var updatedAt: Date
     var appointmentDate: Date?
@@ -49,6 +51,29 @@ struct TaskItem: Identifiable, Hashable {
         }
     }
     
+    enum Repetition: String, CaseIterable {
+        case none = "Никогда"
+        case everyDay = "Каждый день"
+        case everyWeek = "Каждую неделю"
+        case everyTwoWeek = "Каждые две недели"
+        case everyMothe = "Каждый месяц"
+        case everyYear = "Каждый год"
+    }
+    
+    enum Reminder: String, CaseIterable {
+        case none = "Нет"
+        case inTime = "В момент события"
+        case five = "За 5 минут"
+        case ten = "За 10 минут"
+        case fifteen = "За 15 минут"
+        case thirty = "За 30 минут"
+        case hour = "За 1 час"
+        case twoHours = "За 2 часа"
+        case day = "За 1 день"
+        case twoDays = "За 2 дня"
+        case week = "За 1 неделю"
+    }
+    
     init(
         id: UUID = UUID(),
         title: String,
@@ -56,6 +81,8 @@ struct TaskItem: Identifiable, Hashable {
         dueDate: Date? = nil,
         isCompleted: Bool = false,
         priority: Priority = .medium,
+        repetition: Repetition = .none,
+        reminder: Reminder = .none,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         appointmentDate: Date? = nil
@@ -66,6 +93,8 @@ struct TaskItem: Identifiable, Hashable {
         self.dueDate = dueDate
         self.isCompleted = isCompleted
         self.priority = priority
+        self.repetition = repetition
+        self.reminder = reminder
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.appointmentDate = appointmentDate
