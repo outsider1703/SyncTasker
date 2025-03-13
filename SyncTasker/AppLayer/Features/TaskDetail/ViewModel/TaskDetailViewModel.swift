@@ -42,19 +42,16 @@ class TaskDetailViewModel: ObservableObject {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
         
-        if let task = task {
+        if let task {
             self.title = task.title
             self.taskDescription = task.description ?? ""
             
-            // Инициализируем новые поля на основе существующей задачи
-            // Для обратной совместимости используем старые поля
-            // В будущем модель TaskItem нужно будет также обновить
-            if let appointmentDate = task.appointmentDate {
-                self.startDate = appointmentDate
-                self.endDate = task.dueDate ?? appointmentDate.addingTimeInterval(3600)
+            if let startDate = task.startDate {
+                self.startDate = startDate
+                self.endDate = task.endDate ?? startDate.addingTimeInterval(3600)
             } else {
-                self.startDate = task.dueDate ?? Date()
-                self.endDate = (task.dueDate ?? Date()).addingTimeInterval(3600)
+                self.startDate = task.endDate ?? Date()
+                self.endDate = (task.endDate ?? Date()).addingTimeInterval(3600)
             }
             
             self.isCompleted = task.isCompleted
@@ -85,17 +82,18 @@ class TaskDetailViewModel: ObservableObject {
             id: existingTask?.id ?? UUID(),
             title: title,
             description: taskDescription.isEmpty ? nil : taskDescription,
-            dueDate: endDate, // Используем endDate вместо dueDate
+            endDate: endDate,
             isCompleted: isCompleted,
             priority: priority,
             createdAt: existingTask?.createdAt ?? Date(),
             updatedAt: Date(),
-            appointmentDate: startDate // Используем startDate вместо appointmentDate
-            // В будущем можно добавить поля isAllDay и travelTime в модель TaskItem
+            startDate: startDate,
+            isAllDay: isAllDay,
+            travelTime: Calendar.current.date(byAdding: .minute, value: -travelTime.minutes, to: startDate)
         )
         
         do {
-            if let existingTask = existingTask, let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == existingTask.id }) {
+            if let existingTask, let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == existingTask.id }) {
                 taskEntity.update(from: task)
                 try coreDataService.saveContext()
             } else {

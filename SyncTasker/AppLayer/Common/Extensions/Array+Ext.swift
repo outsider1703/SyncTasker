@@ -12,7 +12,7 @@ extension Array where Element == TaskItem {
         let calendar = Calendar.current
         
         let (withAppointment, withoutAppointment) = self.reduce(into: ([TaskItem](), [TaskItem]())) { result, task in
-            if task.appointmentDate != nil {
+            if task.startDate != nil {
                 result.0.append(task)
             } else {
                 result.1.append(task)
@@ -20,7 +20,7 @@ extension Array where Element == TaskItem {
         }
         
         let groupedAppointmentTasks = Dictionary(grouping: withAppointment) { task in
-            guard let date = task.appointmentDate else { return Date() }
+            guard let date = task.startDate else { return Date() }
             let components = calendar.dateComponents([.year, .month, .day], from: date)
             return calendar.date(from: components) ?? date
         }

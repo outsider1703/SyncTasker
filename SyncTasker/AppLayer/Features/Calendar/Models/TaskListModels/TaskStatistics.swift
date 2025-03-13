@@ -35,8 +35,8 @@ struct TaskStatistics {
         self.total = tasks.count
         self.completed = tasks.filter { $0.isCompleted }.count
         self.overdue = tasks.filter {
-            guard let dueDate = $0.dueDate else { return false }
-            return !$0.isCompleted && dueDate < Date()
+            guard let endDate = $0.endDate else { return false }
+            return !$0.isCompleted && endDate < Date()
         }.count
         self.highPriority = tasks.filter { $0.priority == .high }.count
     }
@@ -54,10 +54,10 @@ struct TaskGroupSection: Identifiable {
             
         case .dueDate:
             let grouped = Dictionary(grouping: tasks) { task -> String in
-                guard let dueDate = task.dueDate else { return "No Due Date" }
-                if dueDate < Date() { return "Overdue" }
-                if Calendar.current.isDateInToday(dueDate) { return "Today" }
-                if Calendar.current.isDateInTomorrow(dueDate) { return "Tomorrow" }
+                guard let endDate = task.endDate else { return "No Due Date" }
+                if endDate < Date() { return "Overdue" }
+                if Calendar.current.isDateInToday(endDate) { return "Today" }
+                if Calendar.current.isDateInTomorrow(endDate) { return "Tomorrow" }
                 return "Upcoming"
             }
             return grouped.map { TaskGroupSection(title: $0.key, tasks: $0.value) }.sorted { $0.title < $1.title }

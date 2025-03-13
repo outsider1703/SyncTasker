@@ -34,42 +34,45 @@ struct TaskDetailView: View {
     
     var body: some View {
         NavigationView {
-            Form {
-                TaskTitleSection(
-                    title: $viewModel.title,
-                    description: $viewModel.taskDescription
-                )
-                
-                TaskDatesSection(
-                    startDate: $viewModel.startDate,
-                    endDate: $viewModel.endDate,
-                    isAllDay: $viewModel.isAllDay,
-                    travelTime: $viewModel.travelTime
-                )
-                
-                TaskPropertiesSection(
-                    priority: $viewModel.priority,
-                    repetition: $viewModel.repetition,
-                    reminder: $viewModel.reminder,
-                    isCompleted: $viewModel.isCompleted,
-                    isEditMode: viewModel.isEditMode
-                )
-            }
-            .navigationTitle(viewModel.isEditMode ? Constants.editTitle : Constants.createTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(Constants.cancelButton) { Task { await viewModel.dismiss() } }
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 16) {
+                    TaskTitleSection(
+                        title: $viewModel.title,
+                        description: $viewModel.taskDescription
+                    )
+                    
+                    TaskDatesSection(
+                        startDate: $viewModel.startDate,
+                        endDate: $viewModel.endDate,
+                        isAllDay: $viewModel.isAllDay,
+                        travelTime: $viewModel.travelTime
+                    )
+                    
+                    TaskPropertiesSection(
+                        priority: $viewModel.priority,
+                        repetition: $viewModel.repetition,
+                        reminder: $viewModel.reminder,
+                        isCompleted: $viewModel.isCompleted,
+                        isEditMode: viewModel.isEditMode
+                    )
                 }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(Constants.saveButton) { Task { await viewModel.createOrEditTask() } }
+                .padding()
+                .navigationTitle(viewModel.isEditMode ? Constants.editTitle : Constants.createTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(Constants.cancelButton) { Task { await viewModel.dismiss() } }
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(Constants.saveButton) { Task { await viewModel.createOrEditTask() } }
+                    }
                 }
+                .alert(Constants.errorTitle, isPresented: Binding(
+                    get: { viewModel.errorMessage != nil },
+                    set: { if !$0 { viewModel.errorMessage = nil } }
+                )) { Button(Constants.okButton) { viewModel.errorMessage = nil } }
+                message: { Text(viewModel.errorMessage ?? "") }
             }
-            .alert(Constants.errorTitle, isPresented: Binding(
-                get: { viewModel.errorMessage != nil },
-                set: { if !$0 { viewModel.errorMessage = nil } }
-            )) { Button(Constants.okButton) { viewModel.errorMessage = nil } }
-            message: { Text(viewModel.errorMessage ?? "") }
         }
     }
 }

@@ -60,9 +60,7 @@ class CoreDataService: CoreDataServiceProtocol {
         }
         
         container.loadPersistentStores { description, error in
-            if let error = error {
-                fatalError("Core Data failed to load: \(error.localizedDescription)")
-            }
+            if let error { fatalError("Core Data failed to load: \(error.localizedDescription)") }
         }
         
         setupCloudSyncNotifications()

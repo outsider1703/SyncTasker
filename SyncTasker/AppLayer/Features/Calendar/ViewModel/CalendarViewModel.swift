@@ -42,23 +42,23 @@ class CalendarViewModel: NSObject, ObservableObject {
             return selectedFilter.filter(task)
         }
         
-        let sorted = filtered.sorted { task1, task2 in
-            switch selectedSortOption {
-            case .createdAt:
-                return task1.createdAt > task2.createdAt
-            case .dueDate:
-                guard let date1 = task1.dueDate, let date2 = task2.dueDate else {
-                    return (task1.dueDate != nil) ? true : false
-                }
-                return date1 < date2
-            case .priority:
-                return task1.priority.rawValue > task2.priority.rawValue
-            case .title:
-                return task1.title < task2.title
-            }
-        }
+//        let sorted = filtered.sorted { task1, task2 in
+//            switch selectedSortOption {
+//            case .createdAt:
+//                return task1.createdAt > task2.createdAt
+//            case .dueDate:
+//                guard let date1 = task1.dueDate, let date2 = task2.dueDate else {
+//                    return (task1.dueDate != nil) ? true : false
+//                }
+//                return date1 < date2
+//            case .priority:
+//                return task1.priority.rawValue > task2.priority.rawValue
+//            case .title:
+//                return task1.title < task2.title
+//            }
+//        }
         
-        return TaskGroupSection.group(sorted, by: selectedGrouping)
+        return TaskGroupSection.group(filtered, by: selectedGrouping)
     }
     
     // MARK: - Initialization
@@ -140,12 +140,14 @@ class CalendarViewModel: NSObject, ObservableObject {
             id: task.id,
             title: task.title,
             description: task.description,
-            dueDate: task.dueDate,
+            endDate: task.endDate,
             isCompleted: task.isCompleted,
             priority: task.priority,
             createdAt: task.createdAt,
             updatedAt: Date(),
-            appointmentDate: date
+            startDate: date,
+            isAllDay: task.isAllDay,
+            travelTime: task.travelTime
         )
         
         do {

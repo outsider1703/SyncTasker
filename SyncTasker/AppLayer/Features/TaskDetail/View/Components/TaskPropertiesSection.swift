@@ -8,10 +8,10 @@
 import SwiftUI
 
 private enum Constants {
-    static let priorityTitle = "Priority"
-    static let repeatTitle = "Repeat"
-    static let reminderTitle = "Reminder"
-    static let isCompletedTitle = "Completed"
+    static let priorityTitle = "Приоритет"
+    static let repeatTitle = "Повторение задачи"
+    static let reminderTitle = "Напоминание"
+    static let isCompletedTitle = "Выполнено"
 }
 
 struct TaskPropertiesSection: View {
@@ -43,22 +43,22 @@ struct TaskPropertiesSection: View {
     // MARK: - Body
     
     var body: some View {
-        VStack {
-            Picker(Constants.priorityTitle, selection: $priority) {
+        VStack(spacing: 0) {
+            CustomPicker(Constants.priorityTitle, selection: $priority) {
                 ForEach(TaskItem.Priority.allCases, id: \.self) { priority in
                     Label(priority.title, systemImage: priority.icon)
                         .tag(priority)
                 }
             }
             
-            Picker(Constants.repeatTitle, selection: $repetition) {
+            CustomPicker(Constants.repeatTitle, selection: $repetition) {
                 ForEach(TaskItem.Repetition.allCases, id: \.self) { repetition in
                     Label(repetition.rawValue, systemImage: "repeat")
                         .tag(repetition)
                 }
             }
             
-            Picker(Constants.reminderTitle, selection: $reminder) {
+            CustomPicker(Constants.reminderTitle, selection: $reminder) {
                 ForEach(TaskItem.Reminder.allCases, id: \.self) { reminder in
                     Label(reminder.rawValue, systemImage: "clock")
                         .tag(reminder)
@@ -67,6 +67,7 @@ struct TaskPropertiesSection: View {
             
             if isEditMode {
                 Toggle(Constants.isCompletedTitle, isOn: $isCompleted)
+                    .padding(.vertical, 8)
             }
         }
     }

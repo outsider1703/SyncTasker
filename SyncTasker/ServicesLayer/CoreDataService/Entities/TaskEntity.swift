@@ -15,12 +15,14 @@ extension TaskEntity {
             id: id ?? UUID(),
             title: title ?? "",
             description: taskDescription,
-            dueDate: dueDate,
+            endDate: endDate,
             isCompleted: isCompleted,
             priority: TaskItem.Priority(rawValue: Int(priority)) ?? .medium,
             createdAt: createdAt ?? Date(),
             updatedAt: updatedAt ?? Date(),
-            appointmentDate: appointmentDate
+            startDate: startDate,
+            isAllDay: isAllDay,
+            travelTime: travelTime
         )
     }
     
@@ -28,11 +30,13 @@ extension TaskEntity {
         self.id = task.id
         self.title = task.title
         self.taskDescription = task.description
-        self.dueDate = task.dueDate
+        self.endDate = task.endDate
         self.isCompleted = task.isCompleted
         self.priority = Int16(task.priority.rawValue)
         self.createdAt = task.createdAt
         self.updatedAt = task.updatedAt
-        self.appointmentDate = task.appointmentDate
+        self.startDate = task.startDate
+        self.isAllDay = isAllDay
+        self.travelTime = travelTime
     }
 }

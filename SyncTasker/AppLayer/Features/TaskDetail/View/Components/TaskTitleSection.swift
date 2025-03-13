@@ -20,7 +20,7 @@ struct TaskTitleSection: View {
     @Binding private var description: String
     
     // MARK: - Initialization
-
+    
     init(
         title: Binding<String>,
         description: Binding<String>
@@ -30,19 +30,22 @@ struct TaskTitleSection: View {
     }
     
     // MARK: - Body
-
+    
     var body: some View {
-        Section {
+        VStack {
             TextField(Constants.titlePlaceholder, text: $title)
                 .font(Theme.Typography.headlineFont)
+                .frame(height: 40)
             
-            TextEditor(text: $description)
-                .font(Theme.Typography.bodyFont)
-                .frame(minHeight: 40)
-                .placeholder(when: description.isEmpty) {
-                    Text(Constants.descriptionPlaceholder)
-                        .foregroundColor(Theme.Colors.secondary)
-                }
+            VStack(alignment: .leading, spacing: 0) {
+                Text(Constants.descriptionPlaceholder)
+                    .foregroundStyle(.secondary)
+                TextEditor(text: $description)
+                    .font(Theme.Typography.bodyFont)
+                    .frame(minHeight: 40)
+                    .cornerRadius(12)
+                    .shadow(radius: 1)
+            }
         }
     }
 }

@@ -12,14 +12,16 @@ struct TaskItem: Identifiable, Hashable {
     let id: UUID
     var title: String
     var description: String?
-    var dueDate: Date?
+    var endDate: Date?
     var isCompleted: Bool
     var priority: Priority
     var repetition: Repetition
     var reminder: Reminder
     var createdAt: Date
     var updatedAt: Date
-    var appointmentDate: Date?
+    var startDate: Date?
+    var travelTime: Date?
+    var isAllDay: Bool
     
     enum Priority: Int, CaseIterable {
         case low = 0
@@ -78,25 +80,29 @@ struct TaskItem: Identifiable, Hashable {
         id: UUID = UUID(),
         title: String,
         description: String? = nil,
-        dueDate: Date? = nil,
+        endDate: Date? = nil,
         isCompleted: Bool = false,
         priority: Priority = .medium,
         repetition: Repetition = .none,
         reminder: Reminder = .none,
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        appointmentDate: Date? = nil
+        startDate: Date? = nil,
+        isAllDay: Bool = false,
+        travelTime: Date? = nil
     ) {
         self.id = id
         self.title = title
         self.description = description
-        self.dueDate = dueDate
+        self.endDate = endDate
         self.isCompleted = isCompleted
         self.priority = priority
         self.repetition = repetition
         self.reminder = reminder
         self.createdAt = createdAt
         self.updatedAt = updatedAt
-        self.appointmentDate = appointmentDate
+        self.startDate = startDate
+        self.isAllDay = isAllDay
+        self.travelTime = travelTime
     }
 }

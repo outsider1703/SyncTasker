@@ -58,8 +58,8 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         let calendar = Calendar.current
         
         for task in tasks {
-            guard let taskDate = task.appointmentDate else { continue }
-            let hour = calendar.component(.hour, from: taskDate)
+            guard let startDate = task.startDate else { continue }
+            let hour = calendar.component(.hour, from: startDate)
             
             if groupedTasks[hour] == nil {
                 groupedTasks[hour] = []

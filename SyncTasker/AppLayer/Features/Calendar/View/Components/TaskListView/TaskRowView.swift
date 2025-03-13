@@ -31,8 +31,8 @@ struct TaskRowView: View {
                 .strikethrough(task.isCompleted)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            if let dueDate = task.dueDate {
-                Text(dueDate, style: .date)
+            if let endDate = task.endDate {
+                Text(endDate, style: .date)
                     .font(Theme.Typography.captionFont)
                     .foregroundColor(Theme.Colors.secondary)
             }
