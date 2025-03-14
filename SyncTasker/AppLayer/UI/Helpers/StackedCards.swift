@@ -4,20 +4,47 @@
 //
 //  Created by ingvar on 03.03.2025.
 //
+// Модуль предоставляет кастомный UI-компонент для отображения карточек в виде стека.
+// Основные возможности:
+// - Анимированное масштабирование карточек при скролле
+// - Динамическое изменение прозрачности
+// - Отслеживание изменения месяца при прокрутке
+// - Поддержка кастомного контента через generic parameter
 
 import SwiftUI
 
 @MainActor
 struct StackedCards<Content: View>: View {
-    var items: [DayItem]
-    var selectedDate: Date
-    var stackedDisplayCount: Int
-    var opacityDisplayCount: Int
-    var disablesOpacityEffect: Bool
-    var itemHeight: CGFloat
-    var onMonthChanged: (Date) -> Void
-    @ViewBuilder var content: (DayItem) -> Content
     
+    // MARK: - Private Properties
+
+    private var items: [DayItem]
+    private var selectedDate: Date
+    private var itemHeight: CGFloat
+    private var onMonthChanged: (Date) -> Void
+    @ViewBuilder private var content: (DayItem) -> Content
+    private var stackedDisplayCount: Int = 3
+    private var opacityDisplayCount: Int = 2
+    private var disablesOpacityEffect: Bool = false
+    
+    // MARK: - Initialization
+
+    init(
+        items: [DayItem],
+        selectedDate: Date,
+        itemHeight: CGFloat,
+        onMonthChanged: @escaping (Date) -> Void,
+        @ViewBuilder content: @escaping (DayItem) -> Content
+    ) {
+        self.items = items
+        self.selectedDate = selectedDate
+        self.itemHeight = itemHeight
+        self.onMonthChanged = onMonthChanged
+        self.content = content
+    }
+    
+    // MARK: - Body
+
     var body: some View {
         ScrollViewReader { scrollProxy in
             ScrollView(.vertical, showsIndicators: false) {
@@ -28,7 +55,7 @@ struct StackedCards<Content: View>: View {
                                 .frame(height: itemHeight)
                                 .visualEffect { content, geometryProxy in
                                     content
-                                        .opacity(disablesOpacityEffect == true ? 1 : calculateOpacity(geometryProxy))
+                                        .opacity(disablesOpacityEffect ? 1 : calculateOpacity(geometryProxy))
                                         .scaleEffect(calculateScale(geometryProxy))
                                         .offset(y: calculateOffset(geometryProxy))
                                 }
@@ -72,6 +99,8 @@ struct StackedCards<Content: View>: View {
         }
     }
     
+    // MARK: - Private Methods
+
     private nonisolated func calculateOffset(_ proxy: GeometryProxy) -> CGFloat {
         let minY = proxy.frame(in: .scrollView).minY
         guard minY < 0 else { return 0 }

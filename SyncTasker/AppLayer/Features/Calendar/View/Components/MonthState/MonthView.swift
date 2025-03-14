@@ -11,28 +11,27 @@ struct MonthView: View {
     
     // MARK: - Private Properties
     
+    @Binding private var currentMonth: Date
+    @Binding private var selectedDate: Date
     @State private var days: [DayItem] = []
     @State private var months: [Date] = []
+    @State private var visibleMonth: Date?
     private let monthsToLoad = 12
-    
     private var dailyTasks: [Date: [TaskItem]]
     private let calendar = Calendar.current
-    private let selectedDate: Date
     private let onTaskDropped: (UUID, Date) -> Void
     private let routeToDailySchedule: (Date, [TaskItem]) -> Void
-    @State private var visibleMonth: Date?
-    @Binding var currentMonth: Date
     
     // MARK: - Initialization
     
     init(
-        selectedDate: Date,
+        selectedDate: Binding<Date>,
         currentMonth: Binding<Date>,
         dailyTasks: [Date: [TaskItem]],
         onTaskDropped: @escaping (UUID, Date) -> Void,
         routeToDailySchedule: @escaping (Date, [TaskItem]) -> Void
     ) {
-        self.selectedDate = selectedDate
+        self._selectedDate = selectedDate
         self._currentMonth = currentMonth
         self.onTaskDropped = onTaskDropped
         self.dailyTasks = dailyTasks
@@ -47,19 +46,17 @@ struct MonthView: View {
                 StackedCards(
                     items: days,
                     selectedDate: selectedDate,
-                    stackedDisplayCount: 3,
-                    opacityDisplayCount: 2,
-                    disablesOpacityEffect: false,
                     itemHeight: 150,
-                    onMonthChanged: { month in
-                        updateMonthTitle(for: month)
-                    }
+                    onMonthChanged: { updateMonthTitle(for: $0) }
                 ) { dayItem in
                     if let date = dayItem.date {
                         DayView(
                             date: date,
                             tasks: getTasksForDate(date),
-                            onTap: { routeToDailySchedule(date, getTasksForDate(date)) },
+                            onTap: {
+                                selectedDate = date
+                                routeToDailySchedule(date, getTasksForDate(date))
+                            },
                             onTaskDropped: onTaskDropped
                         )
                     } else if let nextDate = getNextDate(for: dayItem, in: days) {
@@ -75,7 +72,7 @@ struct MonthView: View {
     }
     
     // MonthSeparatorView component
-    private func monthSeparatorView(date: Date) -> some View {        
+    private func monthSeparatorView(date: Date) -> some View {
         return Text(date.toString(format: "MMMM yyyy"))
             .font(Theme.Typography.headlineFont)
             .frame(maxWidth: .infinity, alignment: .leading)

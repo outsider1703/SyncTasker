@@ -27,6 +27,7 @@ struct CalendarView: View {
     // MARK: - Private Properties
     
     @State private var selectedDate = Date()
+    @State private var currentMoutn = Date()
     @State private var viewType: CalendarViewType = .month
     @State private var isTitleAnimating = false
     
@@ -46,21 +47,18 @@ struct CalendarView: View {
             case .month:
                 HStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(selectedDate.toString(format: viewType == .month ? "MMMM yyyy" : "yyyy"))
+                        Text(currentMoutn.toString(format: viewType == .month ? "MMMM yyyy" : "yyyy"))
                             .font(Theme.Typography.headlineFont)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .scaleEffect(isTitleAnimating ? Constants.monthTitleScale : 1.0)
-                            .opacity(isTitleAnimating ? 0.5 : 1.0)
-                            .animation(.easeInOut(duration: Constants.titleAnimationDuration), value: selectedDate)
                             .onTapGesture { switchToYearView() }
                             .padding(.leading, 16)
                         
                         Divider()
                             .padding(.vertical, 4)
-
+                        
                         MonthView(
-                            selectedDate: selectedDate,
-                            currentMonth: $selectedDate,
+                            selectedDate: $selectedDate,
+                            currentMonth: $currentMoutn,
                             dailyTasks: viewModel.dailyTasks,
                             onTaskDropped: { task, date in
                                 viewModel.updateTaskDate(task: task, to: date)
@@ -72,7 +70,6 @@ struct CalendarView: View {
                     
                     TaskListView(
                         taskSections: viewModel.taskSections,
-                        selectedSortOption: $viewModel.selectedSortOption,
                         selectedFilter: $viewModel.selectedFilter,
                         errorMessage: $viewModel.errorMessage,
                         navigateToTaskDetail: { task in
@@ -114,7 +111,7 @@ struct CalendarView: View {
         }
         .ignoresSafeArea(edges: .bottom)
     }
-        
+    
     // MARK: - Private Methods
     
     private func switchToYearView() {
@@ -133,6 +130,7 @@ struct CalendarView: View {
         withAnimation {
             isTitleAnimating = true
             DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
+                currentMoutn = date
                 selectedDate = date
                 viewType = .month
                 DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {

@@ -23,25 +23,22 @@ struct TaskListView: View {
     
     // MARK: - Private Properties
     
-    @Binding private var selectedSortOption: TaskSortOption
     @Binding private var selectedFilter: TaskFilterOption
     @Binding private var errorMessage: String?
     private var taskSections: [TaskGroupSection]
     private var navigateToTaskDetail: (TaskItem?) -> Void
     private let backlogDropped: (UUID) -> Void
-
+    
     // MARK: - Initialization
     
     init(
         taskSections: [TaskGroupSection],
-        selectedSortOption: Binding<TaskSortOption>,
         selectedFilter: Binding<TaskFilterOption>,
         errorMessage: Binding<String?>,
         navigateToTaskDetail: @escaping (TaskItem?) -> Void,
         backlogDropped: @escaping (UUID) -> Void
     ) {
         self.taskSections = taskSections
-        self._selectedSortOption = selectedSortOption
         self._selectedFilter = selectedFilter
         self._errorMessage = errorMessage
         self.navigateToTaskDetail = navigateToTaskDetail
@@ -100,11 +97,6 @@ struct TaskListView: View {
     
     private var filterAndSorting: some View {
         Menu {
-            Picker(Constants.sortTitle, selection: $selectedSortOption) {
-                ForEach(TaskSortOption.allCases, id: \.self) { option in
-                    Text(option.title).tag(option)
-                }
-            }
             Picker(Constants.filterTitle, selection: $selectedFilter) {
                 ForEach(TaskFilterOption.allCases, id: \.self) { filter in
                     Text(filter.title).tag(filter)

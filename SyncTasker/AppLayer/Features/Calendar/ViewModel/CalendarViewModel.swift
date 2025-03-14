@@ -17,16 +17,13 @@ class CalendarViewModel: NSObject, ObservableObject {
     private let navigationService: NavigationServiceProtocol
     private let feedbackManager: FeedbackManager
     
-    // MARK: - Properties
+    // MARK: - Published Properties
     
     @Published var tasks: [TaskItem] = []
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
     @Published var errorMessage: String?
-    @Published var searchText: String = ""
-    @Published var selectedSortOption: TaskSortOption = .createdAt
     @Published var selectedFilter: TaskFilterOption = .all
-    @Published var selectedGrouping: TaskGroupType = .none
     
     // MARK: - Computed Properties
     
@@ -35,30 +32,8 @@ class CalendarViewModel: NSObject, ObservableObject {
     var statistics: TaskStatistics { TaskStatistics(tasks: tasks) }
     
     var taskSections: [TaskGroupSection] {
-        let filtered = backlogTasks.filter { task in
-            if !searchText.isEmpty {
-                return task.title.localizedCaseInsensitiveContains(searchText) || task.description?.localizedCaseInsensitiveContains(searchText) ?? false
-            }
-            return selectedFilter.filter(task)
-        }
-        
-//        let sorted = filtered.sorted { task1, task2 in
-//            switch selectedSortOption {
-//            case .createdAt:
-//                return task1.createdAt > task2.createdAt
-//            case .dueDate:
-//                guard let date1 = task1.dueDate, let date2 = task2.dueDate else {
-//                    return (task1.dueDate != nil) ? true : false
-//                }
-//                return date1 < date2
-//            case .priority:
-//                return task1.priority.rawValue > task2.priority.rawValue
-//            case .title:
-//                return task1.title < task2.title
-//            }
-//        }
-        
-        return TaskGroupSection.group(filtered, by: selectedGrouping)
+        let filtered = backlogTasks.filter { selectedFilter.filter($0) }
+        return TaskGroupSection.group(filtered)
     }
     
     // MARK: - Initialization
@@ -99,11 +74,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     // MARK: - Public Methods
-    
-    func applySort(_ option: TaskSortOption) { selectedSortOption = option }
-    func applyFilter(_ filter: TaskFilterOption) { selectedFilter = filter }
-    func applyGrouping(_ type: TaskGroupType) { selectedGrouping = type }
-    
+        
     func updateTaskDate(task: UUID, to date: Date?) {
         update(for: task, and: date)
     }
@@ -123,10 +94,9 @@ class CalendarViewModel: NSObject, ObservableObject {
     private func loadTasks() {
         do {
             try fetchController.performFetch()
-            let allTasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
-            let groupedTasks = allTasks.groupByAppointmentDate()
+            tasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
+            let groupedTasks = tasks.groupByAppointmentDate()
             
-            tasks = allTasks
             appointmentTasks = groupedTasks.appointmentTasks
             backlogTasks = groupedTasks.backlogTasks
         } catch {
