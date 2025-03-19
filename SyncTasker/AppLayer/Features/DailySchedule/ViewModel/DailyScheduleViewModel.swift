@@ -21,7 +21,9 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     @Published var formattedDate: String = ""
     @Published var dayOfWeek: String = ""
     @Published var tasksByHour: [Int: [TaskItem]] = [:]
+    @Published var allDayTasks: [TaskItem] = []
     @Published var activeHours: [Int] = []
+    @Published var navigationTitle: String = ""
     
     // MARK: - Initialization
     
@@ -44,20 +46,33 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     
     private func setupData() {
         let dateFormatter = DateFormatter()
+        
+        // Установка формата для основной даты
         dateFormatter.dateFormat = "d MMMM yyyy"
         formattedDate = dateFormatter.string(from: date)
         
+        // Установка дня недели
         dateFormatter.dateFormat = "EEEE"
         dayOfWeek = dateFormatter.string(from: date)
+        
+        // Формат для навигационного заголовка
+        dateFormatter.dateFormat = "dd.MM"
+        navigationTitle = dateFormatter.string(from: date)
         
         organizeTasksByHour()
     }
     
     private func organizeTasksByHour() {
         var groupedTasks: [Int: [TaskItem]] = [:]
+        var dayTasks: [TaskItem] = []
         let calendar = Calendar.current
         
         for task in tasks {
+            if task.isAllDay {
+                dayTasks.append(task)
+                continue
+            }
+            
             guard let startDate = task.startDate else { continue }
             let hour = calendar.component(.hour, from: startDate)
             
@@ -68,6 +83,7 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         }
         
         tasksByHour = groupedTasks
+        allDayTasks = dayTasks
         activeHours = Array(groupedTasks.keys).sorted()
     }
     

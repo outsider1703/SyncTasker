@@ -12,12 +12,13 @@ import SwiftUI
 private enum Constants {
     static let monthTitleScale: CGFloat = 1.2
     static let titleAnimationDuration: Double = 0.3
-    static let timelineWidth: CGFloat = 2
-    static let taskCornerRadius: CGFloat = 12
+    static let timelineWidth: CGFloat = 1
+    static let taskCornerRadius: CGFloat = 8
     static let timeIndicatorSize: CGFloat = 10
     static let taskCardPadding: CGFloat = 16
-    static let hourRowHeight: CGFloat = 100
+    static let hourRowHeight: CGFloat = 60
     static let headerSpacing: CGFloat = 20
+    static let timeColumnWidth: CGFloat = 50
 }
 
 struct DailyScheduleView: View {
@@ -43,12 +44,13 @@ struct DailyScheduleView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            headerView
-                .padding(.bottom)
+            if !viewModel.allDayTasks.isEmpty {
+                allDayTasksSection
+            }
             
             ScrollView {
-                LazyVStack(spacing: 12) {
-                    ForEach(viewModel.activeHours, id: \.self) { hour in
+                LazyVStack(spacing: 0) {
+                    ForEach(0..<24) { hour in
                         hourRowView(for: hour)
                     }
                 }
@@ -57,6 +59,7 @@ struct DailyScheduleView: View {
         }
         .background(Color(.systemBackground))
         .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(viewModel.navigationTitle)
         .onAppear {
             withAnimation(.easeInOut(duration: Constants.titleAnimationDuration)) {
                 animateHeader = true
@@ -85,111 +88,73 @@ struct DailyScheduleView: View {
         )
     }
     
+    // MARK: - All Day Tasks Section
+    
+    private var allDayTasksSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("весь день")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            
+            ForEach(viewModel.allDayTasks) { task in
+                allDayTaskCard(task)
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+    }
+    
+    // MARK: - All Day Task Card
+    
+    private func allDayTaskCard(_ task: TaskItem) -> some View {
+        HStack {
+            Text(task.title)
+                .font(.subheadline)
+            Spacer()
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .background(Color(.systemBackground))
+        .cornerRadius(Constants.taskCornerRadius)
+    }
+    
     // MARK: - Hour Row View
     
     private func hourRowView(for hour: Int) -> some View {
         let tasks = viewModel.tasksByHour[hour] ?? []
         
-        return HStack(alignment: .top, spacing: 16) {
+        return HStack(spacing: 0) {
             // Time column
-            VStack(alignment: .trailing) {
-                Text(viewModel.formattedTime(for: hour))
-                    .font(.subheadline.bold())
-                    .foregroundColor(.secondary)
-                    .frame(width: 70, alignment: .trailing)
-                
-                Spacer()
-            }
-            .frame(height: Constants.hourRowHeight)
+            Text(String(format: "%02d:00", hour))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(width: Constants.timeColumnWidth, alignment: .center)
             
-            // Timeline
-            VStack(spacing: 0) {
-                Circle()
-                    .fill(Color.accentColor)
-                    .frame(width: Constants.timeIndicatorSize, height: Constants.timeIndicatorSize)
-                
-                Rectangle()
-                    .fill(Color.accentColor.opacity(0.3))
-                    .frame(width: Constants.timelineWidth)
-                    .frame(maxHeight: .infinity)
-            }
+            // Divider line
+            Rectangle()
+                .fill(Color.gray.opacity(0.2))
+                .frame(height: 1)
             
             // Tasks
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(tasks, id: \.id) { task in
-                    taskCardView(task)
-                        .transition(.scale.combined(with: .opacity))
-                }
-                
-                if tasks.isEmpty {
-                    Text("No tasks")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .padding(.vertical, 8)
+            if !tasks.isEmpty {
+                ForEach(tasks) { task in
+                    taskCard(task)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 8)
+        .frame(height: Constants.hourRowHeight)
     }
     
     // MARK: - Task Card View
     
-    private func taskCardView(_ task: TaskItem) -> some View {
-        let isSelected = selectedTask?.id == task.id
-        
-        return VStack(alignment: .leading, spacing: 8) {
-            Text(task.title)
-                .font(.headline)
-                .foregroundColor(colorScheme == .dark ? .white : .black)
-            
-            if let description = task.description, !description.isEmpty {
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(isSelected ? nil : 2)
-            }
-            
-            HStack {
-                Circle()
-                    .fill(task.priority.color)
-                    .frame(width: 10, height: 10)
-                
-                Text(task.priority.title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Button(action: {
-                    withAnimation {
-                        viewModel.markTaskCompleted(task)
-                    }
-                }) {
-                    Text("Complete")
-                        .font(.caption.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.accentColor.opacity(0.2))
-                        .foregroundColor(.accentColor)
-                        .cornerRadius(12)
-                }
-            }
-        }
-        .padding(Constants.taskCardPadding)
-        .background(
-            RoundedRectangle(cornerRadius: Constants.taskCornerRadius)
-                .fill(Color(.secondarySystemBackground))
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
-        )
-        .onTapGesture {
-            withAnimation {
-                if selectedTask?.id == task.id {
-                    selectedTask = nil
-                } else {
-                    selectedTask = task
-                }
-            }
-        }
+    private func taskCard(_ task: TaskItem) -> some View {
+        Text(task.title)
+            .font(.subheadline)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.accentColor.opacity(0.2))
+            .cornerRadius(Constants.taskCornerRadius)
+            .padding(.horizontal, 8)
     }
 }
