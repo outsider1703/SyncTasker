@@ -56,6 +56,8 @@ class TaskDetailViewModel: ObservableObject {
             
             self.isCompleted = task.isCompleted
             self.priority = task.priority
+            self.repetition = task.repetition
+            self.reminder = task.reminder
         }
     }
     
@@ -74,9 +76,7 @@ class TaskDetailViewModel: ObservableObject {
         }
         
         // Установить корректное время для режима 'весь день'
-        if isAllDay {
-            setAllDayTimes()
-        }
+        if isAllDay { setAllDayTimes() }
         
         let task = TaskItem(
             id: existingTask?.id ?? UUID(),
@@ -93,12 +93,7 @@ class TaskDetailViewModel: ObservableObject {
         )
         
         do {
-            if let existingTask, let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == existingTask.id }) {
-                taskEntity.update(from: task)
-                try coreDataService.saveContext()
-            } else {
-                try coreDataService.createTask(task)
-            }
+            isEditMode ? try coreDataService.updateTask(task) : try coreDataService.createTask(task)
             await dismiss()
         } catch {
             errorMessage = error.localizedDescription

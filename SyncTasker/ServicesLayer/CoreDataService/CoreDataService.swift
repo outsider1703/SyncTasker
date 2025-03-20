@@ -10,43 +10,26 @@ import CloudKit
 
 protocol CoreDataServiceProtocol {
     var viewContext: NSManagedObjectContext { get }
+    func fetchTasks() throws -> [TaskEntity]?
     func createTask(_ task: TaskItem) throws
-    func saveContext() throws
-    func delete(_ object: NSManagedObject) throws
-    func fetchTasks() throws -> [TaskEntity]
+    func updateTask(_ task: TaskItem) throws
+    func delete(_ task: TaskItem) throws
     func setupCloudSyncNotifications()
 }
 
-// MARK: - Error Handling
-enum CoreDataError: LocalizedError {
-    case saveFailed(Error)
-    case deleteFailed(Error)
-    case fetchFailed(Error)
-    case cloudKitError(Error)
-    
-    var errorDescription: String? {
-        switch self {
-        case .saveFailed(let error):
-            return "Failed to save: \(error.localizedDescription)"
-        case .deleteFailed(let error):
-            return "Failed to delete: \(error.localizedDescription)"
-        case .fetchFailed(let error):
-            return "Failed to fetch: \(error.localizedDescription)"
-        case .cloudKitError(let error):
-            return "CloudKit error: \(error.localizedDescription)"
-        }
-    }
-}
-
 class CoreDataService: CoreDataServiceProtocol {
+    
     // MARK: - Singleton
+    
     static let shared = CoreDataService()
     
     // MARK: - Properties
-    let container: NSPersistentCloudKitContainer
+    
+    private let container: NSPersistentCloudKitContainer
     var viewContext: NSManagedObjectContext { container.viewContext }
     
     // MARK: - Initialization
+    
     init() {
         container = NSPersistentCloudKitContainer(name: "SyncTasker")
         
@@ -67,6 +50,7 @@ class CoreDataService: CoreDataServiceProtocol {
     }
     
     // MARK: - CloudKit Setup
+    
     func setupCloudSyncNotifications() {
         NotificationCenter.default.addObserver(
             self,
@@ -76,49 +60,45 @@ class CoreDataService: CoreDataServiceProtocol {
         )
     }
     
-    @objc private func managedObjectContextDidChange(notification: NSNotification) {
-        try? saveContext()
-    }
+    @objc private func managedObjectContextDidChange(notification: NSNotification) { try? saveContext() }
     
-    // MARK: - CoreDataServiceProtocol
+    // MARK: - Public Implementations
     
     func createTask(_ task: TaskItem) throws {
         let taskEntity = TaskEntity(context: viewContext)
         taskEntity.update(from: task)
-        do {
-            try viewContext.save()
-        } catch {
-            throw CoreDataError.saveFailed(error)
-        }
+        try saveContext()
     }
     
-    func saveContext() throws {
-        guard viewContext.hasChanges else { return }
-        
-        do {
-            try viewContext.save()
-        } catch {
-            throw CoreDataError.saveFailed(error)
-        }
+    func updateTask(_ task: TaskItem) throws {
+        guard let taskEntity = try fetchTask(for: task.id) else { return }
+        taskEntity.update(from: task)
+        try saveContext()
+    }
+
+    func delete(_ task: TaskItem) throws {
+        guard let taskEntity = try fetchTask(for: task.id) else { return }
+        viewContext.delete(taskEntity)
+        try saveContext()
     }
     
-    func delete(_ object: NSManagedObject) throws {
-        viewContext.delete(object)
-        do {
-            try saveContext()
-        } catch {
-            throw CoreDataError.deleteFailed(error)
-        }
-    }
-    
-    func fetchTasks() throws -> [TaskEntity] {
+    func fetchTasks() throws -> [TaskEntity]? {
         let request = NSFetchRequest<TaskEntity>(entityName: "TaskEntity")
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
-        
-        do {
-            return try viewContext.fetch(request)
-        } catch {
-            throw CoreDataError.fetchFailed(error)
-        }
+        return try viewContext.fetch(request)
+    }
+    
+    // MARK: - Private Implementations
+    
+    private func fetchTask(for id: UUID) throws -> TaskEntity? {
+        let request = NSFetchRequest<TaskEntity>(entityName: "TaskEntity")
+        request.predicate = NSPredicate(format: "%K == %@", "id", id as CVarArg)
+        request.fetchLimit = 1
+        return try viewContext.fetch(request).first
+    }
+
+    private func saveContext() throws {
+        guard viewContext.hasChanges else { return }
+        try viewContext.save()
     }
 }

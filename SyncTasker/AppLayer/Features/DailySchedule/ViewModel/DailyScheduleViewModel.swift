@@ -18,11 +18,8 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    @Published var formattedDate: String = ""
-    @Published var dayOfWeek: String = ""
     @Published var tasksByHour: [Int: [TaskItem]] = [:]
     @Published var allDayTasks: [TaskItem] = []
-    @Published var activeHours: [Int] = []
     @Published var navigationTitle: String = ""
     
     // MARK: - Initialization
@@ -39,34 +36,16 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         self.tasks = tasks
         
         super.init()
-        setupData()
-    }
-    
-    // MARK: - Private Methods
-    
-    private func setupData() {
-        let dateFormatter = DateFormatter()
-        
-        // Установка формата для основной даты
-        dateFormatter.dateFormat = "d MMMM yyyy"
-        formattedDate = dateFormatter.string(from: date)
-        
-        // Установка дня недели
-        dateFormatter.dateFormat = "EEEE"
-        dayOfWeek = dateFormatter.string(from: date)
-        
-        // Формат для навигационного заголовка
-        dateFormatter.dateFormat = "dd.MM"
-        navigationTitle = dateFormatter.string(from: date)
-        
+        navigationTitle = date.toString()
         organizeTasksByHour()
     }
     
+    // MARK: - Private Methods
+        
     private func organizeTasksByHour() {
         var groupedTasks: [Int: [TaskItem]] = [:]
         var dayTasks: [TaskItem] = []
-        let calendar = Calendar.current
-        
+
         for task in tasks {
             if task.isAllDay {
                 dayTasks.append(task)
@@ -74,7 +53,7 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
             }
             
             guard let startDate = task.startDate else { continue }
-            let hour = calendar.component(.hour, from: startDate)
+            let hour = Calendar.current.component(.minute, from: startDate)
             
             if groupedTasks[hour] == nil {
                 groupedTasks[hour] = []
@@ -84,7 +63,6 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         
         tasksByHour = groupedTasks
         allDayTasks = dayTasks
-        activeHours = Array(groupedTasks.keys).sorted()
     }
     
     // MARK: - Public Methods
@@ -99,11 +77,5 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
             let displayHour = hour % 12 == 0 ? 12 : hour % 12
             return String(format: "%d:00 %@", displayHour, period)
         }
-    }
-    
-    func markTaskCompleted(_ task: TaskItem) {
-        // Implement task completion logic
-        feedbackManager.notification(type: .success)
-        // Update task in database
     }
 }

@@ -81,9 +81,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     func deleteTask(_ task: TaskItem) {
         do {
-            if let taskToDelete = fetchController.fetchedObjects?.first(where: { $0.id == task.id }) {
-                try coreDataService.delete(taskToDelete)
-            }
+            try coreDataService.delete(task)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -121,10 +119,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         )
         
         do {
-            if let taskEntity = try coreDataService.fetchTasks().first(where: { $0.id == task.id }) {
-                taskEntity.update(from: updatedTask)
-                try coreDataService.saveContext()
-            }
+            try coreDataService.updateTask(updatedTask)
         } catch {
             errorMessage = error.localizedDescription
         }
