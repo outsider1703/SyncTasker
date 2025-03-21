@@ -28,16 +28,16 @@ struct TaskDatesSection: View {
     // MARK: - Private Properties
     
     @State private var activePicker: ActivePicker = .none
-    @Binding private var startDate: Date
-    @Binding private var endDate: Date
+    @Binding private var startDate: Date?
+    @Binding private var endDate: Date?
     @Binding private var isAllDay: Bool
     @Binding private var travelTime: TravelTime
     
     // MARK: - Initialization
     
     init(
-        startDate: Binding<Date>,
-        endDate: Binding<Date>,
+        startDate: Binding<Date?>,
+        endDate: Binding<Date?>,
         isAllDay: Binding<Bool>,
         travelTime: Binding<TravelTime>
     ) {
@@ -71,8 +71,8 @@ struct TaskDatesSection: View {
                 isAllDay: isAllDay,
                 activePicker: $activePicker,
                 pickerType: (.endDate, .endTime),
-                dateRange: startDate...,
-                timeRange: Calendar.current.isDate(startDate, inSameDayAs: endDate) ? startDate... : Date.distantPast...
+                dateRange: (startDate ?? Date())...,
+                timeRange: Calendar.current.isDate(startDate ?? Date(), inSameDayAs: endDate ?? Date()) ? (startDate ?? Date())... : Date.distantPast...
             )
             
             if !isAllDay {
@@ -87,11 +87,11 @@ struct TaskDatesSection: View {
     }
     
     private func handleStartDateChange(_ newDate: Date) {
-        // Если дата начала становится позже даты окончания - корректируем
-        if Calendar.current.compare(newDate, to: endDate, toGranularity: .day) == .orderedDescending {
-            let calendar = Calendar.current
+//         Если дата начала становится позже даты окончания - корректируем
+        let calendar = Calendar.current
+        if calendar.compare(newDate, to: endDate ?? Date(), toGranularity: .day) == .orderedDescending {
             let components = calendar.dateComponents([.year, .month, .day], from: newDate)
-            let endComponents = calendar.dateComponents([.hour, .minute], from: endDate)
+            let endComponents = calendar.dateComponents([.hour, .minute], from: endDate ?? Date())
             
             var newEndComponents = components
             newEndComponents.hour = endComponents.hour

@@ -19,8 +19,8 @@ class TaskDetailViewModel: ObservableObject {
     
     @Published var title: String = ""
     @Published var taskDescription: String = ""
-    @Published var startDate: Date = Date()
-    @Published var endDate: Date = Date().addingTimeInterval(3600) // Конец по умолчанию через час
+    @Published var startDate: Date?
+    @Published var endDate: Date?
     @Published var isAllDay: Bool = false
     @Published var travelTime: TravelTime = .none
     @Published var isCompleted: Bool = false
@@ -45,15 +45,8 @@ class TaskDetailViewModel: ObservableObject {
         if let task {
             self.title = task.title
             self.taskDescription = task.description ?? ""
-            
-            if let startDate = task.startDate {
-                self.startDate = startDate
-                self.endDate = task.endDate ?? startDate.addingTimeInterval(3600)
-            } else {
-                self.startDate = task.endDate ?? Date()
-                self.endDate = (task.endDate ?? Date()).addingTimeInterval(3600)
-            }
-            
+            self.startDate = task.startDate
+            self.endDate = task.endDate ?? startDate?.addingTimeInterval(3600)
             self.isCompleted = task.isCompleted
             self.priority = task.priority
             self.repetition = task.repetition
@@ -71,7 +64,7 @@ class TaskDetailViewModel: ObservableObject {
     
     func createOrEditTask() async {
         guard !title.isEmpty else {
-            errorMessage = "Title cannot be empty"
+            await MainActor.run { errorMessage = "Title cannot be empty" }
             return
         }
         
@@ -89,7 +82,7 @@ class TaskDetailViewModel: ObservableObject {
             updatedAt: Date(),
             startDate: startDate,
             isAllDay: isAllDay,
-            travelTime: Calendar.current.date(byAdding: .minute, value: -travelTime.minutes, to: startDate)
+            travelTime: Calendar.current.date(byAdding: .minute, value: -travelTime.minutes, to: startDate ?? Date())
         )
         
         do {
@@ -106,13 +99,13 @@ class TaskDetailViewModel: ObservableObject {
         if isAllDay {
             // Устанавливаем время начала на 00:00
             let calendar = Calendar.current
-            var startComponents = calendar.dateComponents([.year, .month, .day], from: startDate)
+            var startComponents = calendar.dateComponents([.year, .month, .day], from: startDate ?? Date())
             startComponents.hour = 0
             startComponents.minute = 0
             startComponents.second = 0
             
             // Устанавливаем время конца на 23:59
-            var endComponents = calendar.dateComponents([.year, .month, .day], from: endDate)
+            var endComponents = calendar.dateComponents([.year, .month, .day], from: endDate ?? Date())
             endComponents.hour = 23
             endComponents.minute = 59
             endComponents.second = 59

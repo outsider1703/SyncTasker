@@ -108,7 +108,7 @@ class CalendarViewModel: NSObject, ObservableObject {
             id: task.id,
             title: task.title,
             description: task.description,
-            endDate: task.endDate,
+            endDate: date?.addingTimeInterval(3600),
             isCompleted: task.isCompleted,
             priority: task.priority,
             createdAt: task.createdAt,

@@ -36,7 +36,7 @@ extension TaskEntity {
         self.createdAt = task.createdAt
         self.updatedAt = task.updatedAt
         self.startDate = task.startDate
-        self.isAllDay = isAllDay
-        self.travelTime = travelTime
+        self.isAllDay = task.isAllDay
+        self.travelTime = task.travelTime
     }
 }
