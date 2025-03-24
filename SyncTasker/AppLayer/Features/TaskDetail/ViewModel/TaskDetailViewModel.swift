@@ -68,9 +68,6 @@ class TaskDetailViewModel: ObservableObject {
             return
         }
         
-        // Установить корректное время для режима 'весь день'
-        if isAllDay { setAllDayTimes() }
-        
         let task = TaskItem(
             id: existingTask?.id ?? UUID(),
             title: title,
@@ -90,28 +87,6 @@ class TaskDetailViewModel: ObservableObject {
             await dismiss()
         } catch {
             errorMessage = error.localizedDescription
-        }
-    }
-    
-    // MARK: - Private Methods
-    
-    private func setAllDayTimes() {
-        if isAllDay {
-            // Устанавливаем время начала на 00:00
-            let calendar = Calendar.current
-            var startComponents = calendar.dateComponents([.year, .month, .day], from: startDate ?? Date())
-            startComponents.hour = 0
-            startComponents.minute = 0
-            startComponents.second = 0
-            
-            // Устанавливаем время конца на 23:59
-            var endComponents = calendar.dateComponents([.year, .month, .day], from: endDate ?? Date())
-            endComponents.hour = 23
-            endComponents.minute = 59
-            endComponents.second = 59
-            
-            if let newStartDate = calendar.date(from: startComponents) {  startDate = newStartDate }
-            if let newEndDate = calendar.date(from: endComponents) { endDate = newEndDate }
         }
     }
 }
