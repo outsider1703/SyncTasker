@@ -48,11 +48,11 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     }
     
     // MARK: - Private Methods
-        
+    
     private func organizeTasksByHour() {
         var dayTasks: [TaskItem] = []
         var timedTasks: [TaskItem] = []
-
+        
         for task in tasks {
             if task.isAllDay {
                 dayTasks.append(task)
@@ -72,8 +72,8 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
-    func tasksForHour(_ hour: Int) -> [(task: TaskItem, offset: CGFloat)] {
-        var result: [(TaskItem, CGFloat)] = []
+    func tasksForHour(_ hour: Int) -> [DailyTask] {
+        var result: [DailyTask] = []
         var usedOffsets: Set<Int> = []
         
         for task in sortedTasks {
@@ -91,7 +91,7 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
                 }
                 usedOffsets.insert(offset)
                 
-                result.append((task, CGFloat(offset) * 16))
+                result.append(DailyTask(task: task, offset: 100, height: 200))
             }
         }
         
@@ -121,4 +121,11 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         }
         return 0
     }
+}
+
+struct DailyTask: Hashable {
+    
+    var task: TaskItem
+    var offset: CGFloat
+    var height: CGFloat
 }

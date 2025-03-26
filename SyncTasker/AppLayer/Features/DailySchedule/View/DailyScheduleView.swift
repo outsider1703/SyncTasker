@@ -12,7 +12,7 @@ import SwiftUI
 private enum Constants {
     static let taskCornerRadius: CGFloat = 8
     static let hourRowHeight: CGFloat = 60
-    static let timeColumnWidth: CGFloat = 50
+    static let timeColumnWidth: CGFloat = 24
     static let taskMinWidth: CGFloat = 100
 }
 
@@ -46,7 +46,6 @@ struct DailyScheduleView: View {
                         hourRowView(for: hour)
                     }
                 }
-                .padding()
             }
         }
         .background(Color(.systemBackground))
@@ -81,57 +80,53 @@ struct DailyScheduleView: View {
     // MARK: - Hour Row View
     
     private func hourRowView(for hour: Int) -> some View {
-        let tasksWithOffsets = viewModel.tasksForHour(hour)
+        let dailyTasks = viewModel.tasksForHour(hour)
         
         return ZStack(alignment: .leading) {
             // Background with time and divider
             HStack(spacing: 0) {
-                Text(String(format: "%02d:00", hour))
+                Text(String(format: "%02d", hour))
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .frame(width: Constants.timeColumnWidth, alignment: .center)
-                
                 Rectangle()
-                    .fill(Color.gray.opacity(0.2))
+                    .fill(.gray.opacity(0.2))
                     .frame(height: 1)
             }
+            .frame(height: Constants.hourRowHeight)
+            .background(.red)
             
             // Tasks layer
             HStack(spacing: 0) {
                 // Spacing for time column
                 Rectangle()
-                    .fill(Color.clear)
+                    .fill(.clear)
                     .frame(width: Constants.timeColumnWidth)
                 
                 // Tasks
                 ZStack(alignment: .topLeading) {
-                    ForEach(tasksWithOffsets, id: \.0.id) { task, offset in
-                        TaskView(task: task, viewModel: viewModel, hour: hour)
-                    }
+                    ForEach(dailyTasks, id: \.self) { TaskView(dailyTask: $0) }
                 }
                 .frame(maxWidth: .infinity)
             }
         }
-        .frame(height: Constants.hourRowHeight)
     }
     
     // MARK: - Task View
     
     private struct TaskView: View {
-        let task: TaskItem
-        let viewModel: DailyScheduleViewModel
-        let hour: Int
+        let dailyTask: DailyTask
         
         var body: some View {
-            Text(task.title)
+            Text(dailyTask.task.title)
                 .font(.subheadline)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .frame(width: Constants.taskMinWidth, alignment: .leading)
                 .background(Color.accentColor.opacity(0.2))
                 .cornerRadius(Constants.taskCornerRadius)
-                .frame(height: viewModel.taskHeight(for: task))
-                .offset(y: viewModel.taskTopOffset(for: task, in: hour))
+                .frame(height: dailyTask.height)
+                .offset(y: dailyTask.offset)
         }
     }
 }
