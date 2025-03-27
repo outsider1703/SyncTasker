@@ -10,10 +10,9 @@ import SwiftUI
 // MARK: - Constants
 
 private enum Constants {
-    static let taskCornerRadius: CGFloat = 8
+    static let taskCornerRadius: CGFloat = 12
     static let hourRowHeight: CGFloat = 60
     static let timeColumnWidth: CGFloat = 24
-    static let taskMinWidth: CGFloat = 100
 }
 
 struct DailyScheduleView: View {
@@ -37,96 +36,80 @@ struct DailyScheduleView: View {
     var body: some View {
         VStack(spacing: 0) {
             if !viewModel.allDayTasks.isEmpty {
-                allDayTasksSection
-            }
-            
-            ScrollView {
-                LazyVStack(spacing: 0) {
-                    ForEach(0..<24) { hour in
-                        hourRowView(for: hour)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("весь день")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(viewModel.allDayTasks) { task in
+                        HStack {
+                            Text(task.title)
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(Constants.taskCornerRadius)
                     }
                 }
+                .padding()
+                .background(Color(.secondarySystemBackground))
+            }
+            
+            ScrollView(showsIndicators: false) {
+                GeometryReader { geometry in
+                    ZStack(alignment: .topLeading) {
+                        // Часовая сетка
+                        VStack(spacing: 0) {
+                            ForEach(0..<24) { hour in
+                                HStack(alignment: .top, spacing: 0) {
+                                    VStack {
+                                        Text(String(format: "%02d", hour))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                    }
+                                    .frame(width: Constants.timeColumnWidth)
+                                    .padding(.top, 4)
+                                    
+                                    Rectangle()
+                                        .fill(.gray.opacity(0.2))
+                                        .frame(height: 1)
+                                }
+                                .frame(height: Constants.hourRowHeight)
+                            }
+                        }
+                        
+                        // Задачи
+                        ForEach(viewModel.dailyTasks, id: \.task.id) { task in
+                            TaskView(dailyTask: task)
+                                .position(x: geometry.size.width / 2, y: task.offset + (task.height / 2))
+                        }
+                    }
+                }
+                .frame(height: CGFloat(24) * Constants.hourRowHeight)
             }
         }
         .background(Color(.systemBackground))
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(viewModel.navigationTitle)
     }
+}
+
+// MARK: - Task View
+
+private struct TaskView: View {
+    let dailyTask: DailyTask
     
-    // MARK: - All Day Tasks Section
-    
-    private var allDayTasksSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("весь день")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            ForEach(viewModel.allDayTasks) { task in
-                HStack {
-                    Text(task.title)
-                        .font(.subheadline)
-                    Spacer()
-                }
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
-                .background(Color(.systemBackground))
-                .cornerRadius(Constants.taskCornerRadius)
-            }
-        }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-    }
-    
-    // MARK: - Hour Row View
-    
-    private func hourRowView(for hour: Int) -> some View {
-        let dailyTasks = viewModel.tasksForHour(hour)
-        
-        return ZStack(alignment: .leading) {
-            // Background with time and divider
-            HStack(spacing: 0) {
-                Text(String(format: "%02d", hour))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: Constants.timeColumnWidth, alignment: .center)
-                Rectangle()
-                    .fill(.gray.opacity(0.2))
-                    .frame(height: 1)
-            }
-            .frame(height: Constants.hourRowHeight)
-            .background(.red)
-            
-            // Tasks layer
-            HStack(spacing: 0) {
-                // Spacing for time column
-                Rectangle()
-                    .fill(.clear)
-                    .frame(width: Constants.timeColumnWidth)
-                
-                // Tasks
-                ZStack(alignment: .topLeading) {
-                    ForEach(dailyTasks, id: \.self) { TaskView(dailyTask: $0) }
-                }
-                .frame(maxWidth: .infinity)
-            }
-        }
-    }
-    
-    // MARK: - Task View
-    
-    private struct TaskView: View {
-        let dailyTask: DailyTask
-        
-        var body: some View {
+    var body: some View {
+        HStack {
             Text(dailyTask.task.title)
                 .font(.subheadline)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .frame(width: Constants.taskMinWidth, alignment: .leading)
-                .background(Color.accentColor.opacity(0.2))
-                .cornerRadius(Constants.taskCornerRadius)
-                .frame(height: dailyTask.height)
-                .offset(y: dailyTask.offset)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, Constants.timeColumnWidth)
         }
+        .frame(height: dailyTask.height)
+        .background(Color.accentColor.opacity(0.2))
     }
 }

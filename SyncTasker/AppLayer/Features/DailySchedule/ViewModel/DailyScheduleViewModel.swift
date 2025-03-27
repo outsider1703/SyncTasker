@@ -7,14 +7,7 @@
 
 import Foundation
 
-
-// MARK: - Constants
-
-private enum Constants {
-    static let hourRowHeight: CGFloat = 60
-}
-
-class DailyScheduleViewModel: NSObject, ObservableObject {
+class DailyScheduleViewModel: ObservableObject {
     
     // MARK: - Injections
     
@@ -25,8 +18,8 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     
     // MARK: - Properties
     
-    @Published var sortedTasks: [TaskItem] = []
     @Published var allDayTasks: [TaskItem] = []
+    @Published var dailyTasks: [DailyTask] = []
     @Published var navigationTitle: String = ""
     
     // MARK: - Initialization
@@ -42,7 +35,6 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
         self.date = date
         self.tasks = tasks
         
-        super.init()
         navigationTitle = date.toString()
         organizeTasksByHour()
     }
@@ -51,80 +43,30 @@ class DailyScheduleViewModel: NSObject, ObservableObject {
     
     private func organizeTasksByHour() {
         var dayTasks: [TaskItem] = []
-        var timedTasks: [TaskItem] = []
+        var taskFrameModel: [DailyTask] = []
         
         for task in tasks {
             if task.isAllDay {
                 dayTasks.append(task)
-            } else if let startDate = task.startDate {
-                timedTasks.append(task)
-            }
-        }
-        
-        // Сортируем задачи по времени начала
-        sortedTasks = timedTasks.sorted { task1, task2 in
-            guard let date1 = task1.startDate, let date2 = task2.startDate else { return false }
-            return date1 < date2
-        }
-        
-        allDayTasks = dayTasks
-    }
-    
-    // MARK: - Public Methods
-    
-    func tasksForHour(_ hour: Int) -> [DailyTask] {
-        var result: [DailyTask] = []
-        var usedOffsets: Set<Int> = []
-        
-        for task in sortedTasks {
-            guard let startDate = task.startDate, let endDate = task.endDate else { continue }
-            
-            let taskStartHour = Calendar.current.component(.hour, from: startDate)
-            let taskEndHour = Calendar.current.component(.hour, from: endDate)
-            
-            // Проверяем, пересекается ли задача с текущим часом
-            if hour >= taskStartHour && hour <= taskEndHour {
-                // Находим свободное смещение для задачи
-                var offset = 0
-                while usedOffsets.contains(offset) {
-                    offset += 1
-                }
-                usedOffsets.insert(offset)
+            } else if let startDate = task.startDate, let endDate = task.endDate {
+                let startHour = Calendar.current.component(.hour, from: startDate) * 60
+                let startMinute = Calendar.current.component(.minute, from: startDate)
+                let endHour = Calendar.current.component(.hour, from: endDate) * 60
+                let endMinute = Calendar.current.component(.minute, from: endDate)
                 
-                result.append(DailyTask(task: task, offset: 100, height: 200))
+                let startTime = startHour + startMinute
+                let duration = (endHour + endMinute) - (startHour + startMinute)
+                
+                taskFrameModel.append(DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration)))
             }
         }
         
-        return result
-    }
-    
-    func taskHeight(for task: TaskItem) -> CGFloat {
-        guard let startDate = task.startDate, let endDate = task.endDate else { return 0 }
-        
-        let startHour = Calendar.current.component(.hour, from: startDate)
-        let startMinute = Calendar.current.component(.minute, from: startDate)
-        let endHour = Calendar.current.component(.hour, from: endDate)
-        let endMinute = Calendar.current.component(.minute, from: endDate)
-        
-        let duration = (endHour - startHour) * 60 + (endMinute - startMinute)
-        return CGFloat(duration) * (Constants.hourRowHeight / 60)
-    }
-    
-    func taskTopOffset(for task: TaskItem, in hour: Int) -> CGFloat {
-        guard let startDate = task.startDate else { return 0 }
-        
-        let taskStartHour = Calendar.current.component(.hour, from: startDate)
-        let taskStartMinute = Calendar.current.component(.minute, from: startDate)
-        
-        if taskStartHour == hour {
-            return CGFloat(taskStartMinute) * (Constants.hourRowHeight / 60)
-        }
-        return 0
+        dailyTasks = taskFrameModel
+        allDayTasks = dayTasks
     }
 }
 
 struct DailyTask: Hashable {
-    
     var task: TaskItem
     var offset: CGFloat
     var height: CGFloat
