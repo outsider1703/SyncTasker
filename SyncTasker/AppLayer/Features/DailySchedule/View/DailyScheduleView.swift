@@ -40,20 +40,18 @@ struct DailyScheduleView: View {
                     Text("весь день")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                    
-                    ForEach(viewModel.allDayTasks) { task in
-                        HStack {
+                    HStack {
+                        ForEach(viewModel.allDayTasks) { task in
                             Text(task.title)
                                 .font(.subheadline)
-                            Spacer()
+                                .padding(.all, 8)
+                                .background(Color(.systemBackground))
+                                .cornerRadius(Constants.taskCornerRadius)
                         }
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(Constants.taskCornerRadius)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .padding()
+                .padding([.bottom, .horizontal], 16)
                 .background(Color(.secondarySystemBackground))
             }
             
@@ -81,14 +79,21 @@ struct DailyScheduleView: View {
                             }
                         }
                         
-                        // Задачи
-                        ForEach(viewModel.dailyTasks, id: \.task.id) { task in
-                            TaskView(dailyTask: task)
-                                .position(x: geometry.size.width / 2, y: task.offset + (task.height / 2))
+                        // Задачи с группировкой
+                        ForEach(Array(viewModel.dailyTasks.keys), id: \.self) { offset in
+                            if let tasks = viewModel.dailyTasks[offset] {
+                                HStack(spacing: 4) {
+                                    ForEach(tasks, id: \.task.id) { task in
+                                        TaskView(dailyTask: task)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .position(x: geometry.size.width / 2, y: offset + (tasks[0].height / 2))
+                            }
                         }
                     }
                 }
-                .frame(height: CGFloat(24) * Constants.hourRowHeight)
+                .frame(height: Constants.hourRowHeight * 24)
             }
         }
         .background(Color(.systemBackground))
@@ -103,11 +108,12 @@ private struct TaskView: View {
     let dailyTask: DailyTask
     
     var body: some View {
-        HStack {
+        VStack {
             Text(dailyTask.task.title)
                 .font(.subheadline)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, Constants.timeColumnWidth)
+                .padding(.horizontal, 8)
+            Spacer()
         }
         .frame(height: dailyTask.height)
         .background(Color.accentColor.opacity(0.2))

@@ -19,7 +19,7 @@ class DailyScheduleViewModel: ObservableObject {
     // MARK: - Properties
     
     @Published var allDayTasks: [TaskItem] = []
-    @Published var dailyTasks: [DailyTask] = []
+    @Published var dailyTasks: [CGFloat: [DailyTask]] = [:]
     @Published var navigationTitle: String = ""
     
     // MARK: - Initialization
@@ -61,13 +61,7 @@ class DailyScheduleViewModel: ObservableObject {
             }
         }
         
-        dailyTasks = taskFrameModel
+        dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }
         allDayTasks = dayTasks
     }
-}
-
-struct DailyTask: Hashable {
-    var task: TaskItem
-    var offset: CGFloat
-    var height: CGFloat
 }
