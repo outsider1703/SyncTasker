@@ -9,16 +9,13 @@ import SwiftUI
 
 private enum Constants {
     static let allDayTitle = "Весь день"
-    static let startDateTitle = "Начало"
-    static let endDateTitle = "Конец"
     static let travelTimeTitle = "Время в пути"
 }
 
 enum ActivePicker {
     case none
-    case startDate
+    case date
     case startTime
-    case endDate
     case endTime
     case travelTime
 }
@@ -57,22 +54,10 @@ struct TaskDatesSection: View {
                 }
             
             DateSection(
-                title: Constants.startDateTitle,
-                date: $startDate,
+                startDate: $startDate,
+                endDate: $endDate,
                 isAllDay: isAllDay,
-                activePicker: $activePicker,
-                pickerType: (.startDate, .startTime),
-                onDateChange: handleStartDateChange
-            )
-            
-            DateSection(
-                title: Constants.endDateTitle,
-                date: $endDate,
-                isAllDay: isAllDay,
-                activePicker: $activePicker,
-                pickerType: (.endDate, .endTime),
-                dateRange: (startDate ?? Date())...,
-                timeRange: Calendar.current.isDate(startDate ?? Date(), inSameDayAs: endDate ?? Date()) ? (startDate ?? Date())... : Date.distantPast...
+                activePicker: $activePicker
             )
             
             if !isAllDay {
@@ -83,21 +68,6 @@ struct TaskDatesSection: View {
                     }
                 }
             }
-        }
-    }
-    
-    private func handleStartDateChange(_ newDate: Date) {
-//         Если дата начала становится позже даты окончания - корректируем
-        let calendar = Calendar.current
-        if calendar.compare(newDate, to: endDate ?? Date(), toGranularity: .day) == .orderedDescending {
-            let components = calendar.dateComponents([.year, .month, .day], from: newDate)
-            let endComponents = calendar.dateComponents([.hour, .minute], from: endDate ?? Date())
-            
-            var newEndComponents = components
-            newEndComponents.hour = endComponents.hour
-            newEndComponents.minute = endComponents.minute
-            
-            if let newEndDate = calendar.date(from: newEndComponents) { endDate = newEndDate }
         }
     }
 }

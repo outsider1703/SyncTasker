@@ -12,13 +12,9 @@ struct DateSection: View {
     // MARK: - Private Properties
     
     @Binding private var activePicker: ActivePicker
-    @Binding private var date: Date?
-    private let pickerType: (date: ActivePicker, time: ActivePicker)
-    private let dateRange: PartialRangeFrom<Date>?
-    private let timeRange: PartialRangeFrom<Date>?
-    private let onDateChange: ((Date) -> Void)?
+    @Binding private var startDate: Date?
+    @Binding private var endDate: Date?
     private let isAllDay: Bool
-    private let title: String
     
     private enum DateFormat {
         case date
@@ -28,56 +24,58 @@ struct DateSection: View {
     // MARK: - Initialization
     
     init(
-        title: String,
-        date: Binding<Date?>,
+        startDate: Binding<Date?>,
+        endDate: Binding<Date?>,
         isAllDay: Bool,
-        activePicker: Binding<ActivePicker>,
-        pickerType: (date: ActivePicker, time: ActivePicker),
-        onDateChange: ((Date) -> Void)? = nil,
-        dateRange: PartialRangeFrom<Date>? = nil,
-        timeRange: PartialRangeFrom<Date>? = nil
+        activePicker: Binding<ActivePicker>
     ) {
-        self.title = title
-        self._date = date
+        self._startDate = startDate
+        self._endDate = endDate
         self.isAllDay = isAllDay
         self._activePicker = activePicker
-        self.pickerType = pickerType
-        self.onDateChange = onDateChange
-        self.dateRange = dateRange
-        self.timeRange = timeRange
     }
     
     // MARK: - View
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
-                Text(title)
+                Text("Время")
                     .font(Theme.Typography.bodyFont)
                     .foregroundColor(Theme.Colors.primary)
                 Spacer()
                 
-                customButton(date: date, icon: "calendar", format: .date, pickerType: pickerType.date, isActive: activePicker == pickerType.date)
-                if !isAllDay { customButton(date: date, icon: "clock", format: .time, pickerType: pickerType.time, isActive: activePicker == pickerType.time) }
+                customButton(date: startDate, icon: "calendar", format: .date, pickerType: .date, isActive: activePicker == .date)
+                if !isAllDay {
+                    customButton(date: startDate, icon: "clock", format: .time, pickerType: .startTime, isActive: activePicker == .startTime)
+                    customButton(date: endDate, icon: "clock", format: .time, pickerType: .endTime, isActive: activePicker == .endTime)
+                }
             }
             
             VStack {
-                if activePicker == pickerType.date {
+                if activePicker == .date {
                     DatePicker("",
-                               selection: Binding<Date>(get: { self.date ?? Date() }, set: { self.date = $0 }),
-                               in: dateRange ?? Date()...,
+                               selection: Binding<Date>(get: { self.startDate ?? Date() }, set: { self.startDate = $0 }),
+                               in: Date()...,
                                displayedComponents: [.date])
-                        .datePickerStyle(GraphicalDatePickerStyle())
-                        .labelsHidden()
-                        .onChange(of: date ?? Date()) { oldValue, newValue in
-                            onDateChange?(newValue)
-                        }
-                } else if activePicker == pickerType.time && !isAllDay {
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .labelsHidden()
+                } else if (activePicker == .startTime || activePicker == .endTime) && !isAllDay {
                     DatePicker("",
-                               selection: Binding<Date>(get: { self.date ?? Date() }, set: { self.date = $0 }),
-                               in: timeRange ?? Date()...,
-                               displayedComponents: [.hourAndMinute])
-                        .datePickerStyle(WheelDatePickerStyle())
-                        .labelsHidden()
+                               selection: Binding<Date>(
+                                get: { (activePicker == .startTime ? startDate : endDate) ?? Date() },
+                                set: { activePicker == .startTime ? (startDate = $0) : (endDate = $0) }
+                               ),
+                               in: activePicker == .endTime ? (startDate ?? Date())... : Date.distantPast...,
+                               displayedComponents: [.hourAndMinute]
+                    )
+                    .datePickerStyle(WheelDatePickerStyle())
+                    .labelsHidden()
+                    .onChange(of: startDate ?? Date()) { oldValue, newValue in
+                        //Если время начала становится позже времени окончания - корректируем
+                        if Calendar.current.compare(newValue, to: endDate ?? Date(), toGranularity: .minute) == .orderedDescending {
+                            endDate = newValue.addingTimeInterval(3600)
+                        }
+                    }
                 }
             }
             .clipped()
@@ -95,7 +93,7 @@ struct DateSection: View {
                 Image(systemName: icon)
                     .font(.system(size: 14))
                     .foregroundColor(Theme.Colors.accent)
-                let title = format == .date ? date?.formatted(date: .abbreviated, time: .omitted) ?? "selete date" : date?.formatted(date: .omitted, time: .shortened) ?? "selete time"
+                let title = format == .date ? date?.formatted(date: .abbreviated, time: .omitted) ?? "date" : date?.formatted(date: .omitted, time: .shortened) ?? "time"
                 Text(title)
                     .font(Theme.Typography.bodyFont)
                     .foregroundColor(Theme.Colors.primary)
