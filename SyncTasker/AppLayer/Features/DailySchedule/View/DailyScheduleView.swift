@@ -35,26 +35,6 @@ struct DailyScheduleView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            if !viewModel.allDayTasks.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("весь день")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    HStack {
-                        ForEach(viewModel.allDayTasks) { task in
-                            Text(task.title)
-                                .font(.subheadline)
-                                .padding(.all, 8)
-                                .background(Color(.systemBackground))
-                                .cornerRadius(Constants.taskCornerRadius)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding([.bottom, .horizontal], 16)
-                .background(Color(.secondarySystemBackground))
-            }
-            
             ScrollView(showsIndicators: false) {
                 GeometryReader { geometry in
                     ZStack(alignment: .topLeading) {

@@ -18,7 +18,6 @@ class DailyScheduleViewModel: ObservableObject {
     
     // MARK: - Properties
     
-    @Published var allDayTasks: [TaskItem] = []
     @Published var dailyTasks: [CGFloat: [DailyTask]] = [:]
     @Published var navigationTitle: String = ""
     
@@ -42,13 +41,8 @@ class DailyScheduleViewModel: ObservableObject {
     // MARK: - Private Methods
     
     private func organizeTasksByHour() {
-        var dayTasks: [TaskItem] = []
-        var taskFrameModel: [DailyTask] = []
-        
-        for task in tasks {
-            if task.isAllDay {
-                dayTasks.append(task)
-            } else if let startDate = task.startDate, let endDate = task.endDate {
+        let taskFrameModel = tasks.map { task in
+            if let startDate = task.startDate, let endDate = task.endDate {
                 let startHour = Calendar.current.component(.hour, from: startDate) * 60
                 let startMinute = Calendar.current.component(.minute, from: startDate)
                 let endHour = Calendar.current.component(.hour, from: endDate) * 60
@@ -57,11 +51,10 @@ class DailyScheduleViewModel: ObservableObject {
                 let startTime = startHour + startMinute
                 let duration = (endHour + endMinute) - (startHour + startMinute)
                 
-                taskFrameModel.append(DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration)))
+                return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
             }
+            return DailyTask(task: task, offset: 0, height: 0)
         }
-        
         dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }
-        allDayTasks = dayTasks
     }
 }

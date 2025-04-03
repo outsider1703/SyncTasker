@@ -17,13 +17,13 @@ struct TaskTitleSection: View {
     // MARK: - Private Properties
     
     @Binding private var title: String
-    @Binding private var description: String
+    @Binding private var description: String?
     
     // MARK: - Initialization
     
     init(
         title: Binding<String>,
-        description: Binding<String>
+        description: Binding<String?>
     ) {
         self._title = title
         self._description = description
@@ -40,7 +40,7 @@ struct TaskTitleSection: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(Constants.descriptionPlaceholder)
                     .foregroundStyle(.secondary)
-                TextEditor(text: $description)
+                TextEditor(text: $description.toUnwrapped(defaultValue: ""))
                     .font(Theme.Typography.bodyFont)
                     .frame(minHeight: 40)
                     .cornerRadius(12)

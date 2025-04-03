@@ -18,18 +18,23 @@ class TaskDetailViewModel: ObservableObject {
     // MARK: - Properties
     
     @Published var title: String = ""
-    @Published var taskDescription: String = ""
+    @Published var taskDescription: String?
     @Published var startDate: Date?
     @Published var endDate: Date?
-    @Published var isAllDay: Bool = false
     @Published var travelTime: TravelTime = .none
     @Published var isCompleted: Bool = false
     @Published var priority: TaskItem.Priority = .medium
     @Published var repetition: TaskItem.Repetition = .none
     @Published var reminder: TaskItem.Reminder = .none
     @Published var errorMessage: String?
-    
+    @Published var isAllDay: Bool = false {
+        didSet { setTaskTimeForAllDay() }
+    }
     var isEditMode: Bool { existingTask != nil }
+
+    // MARK: - Private Properties
+    
+    private let calendar = Calendar.current
     
     // MARK: - Initialization
     
@@ -71,7 +76,7 @@ class TaskDetailViewModel: ObservableObject {
         let task = TaskItem(
             id: existingTask?.id ?? UUID(),
             title: title,
-            description: taskDescription.isEmpty ? nil : taskDescription,
+            description: taskDescription,
             endDate: endDate,
             isCompleted: isCompleted,
             priority: priority,
@@ -79,7 +84,7 @@ class TaskDetailViewModel: ObservableObject {
             updatedAt: Date(),
             startDate: startDate,
             isAllDay: isAllDay,
-            travelTime: Calendar.current.date(byAdding: .minute, value: -travelTime.minutes, to: startDate ?? Date())
+            travelTime: calendar.date(byAdding: .minute, value: -travelTime.minutes, to: startDate ?? Date())
         )
         
         do {
@@ -88,5 +93,18 @@ class TaskDetailViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    // MARK: - Private Methods
+
+    private func setTaskTimeForAllDay() {
+        guard isAllDay else { return }
+        var components = calendar.dateComponents([.year, .month, .day], from: startDate ?? Date())
+        components.hour = 0
+        components.minute = 0
+        self.startDate = calendar.date(from: components)
+        components.hour = 23
+        components.minute = 59
+        self.endDate = calendar.date(from: components)
     }
 }
