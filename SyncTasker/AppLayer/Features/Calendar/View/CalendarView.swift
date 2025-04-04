@@ -97,6 +97,15 @@ struct CalendarView: View {
             .frame(maxWidth: .infinity)
             
             HStack {
+                Button(action: { viewModel.navigateToFreeTime() }) {
+                    Text("Free Time")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(.all, 8)
+                        .background(Theme.Colors.accent)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
+                }
                 Spacer()
                 Button(action: { viewModel.navigateToTaskDetail(nil) }) {
                     Image(systemName: Constants.addIcon)
@@ -106,8 +115,8 @@ struct CalendarView: View {
                         .background(Circle().fill(Theme.Colors.accent))
                         .shadow(radius: 4)
                 }
-                .padding([.bottom, .trailing], 32)
             }
+            .padding([.bottom, .horizontal], 32)
         }
         .ignoresSafeArea(edges: .bottom)
     }

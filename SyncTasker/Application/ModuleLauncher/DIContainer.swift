@@ -56,4 +56,11 @@ class DIContainer {
             tasks: tasks
         )
     }
+    
+    func makeFreeTimeViewModel() -> FreeTimeViewModel {
+        return FreeTimeViewModel(
+            coreDataService: coreDataService,
+            navigationService: navigationService
+        )
+    }
 }

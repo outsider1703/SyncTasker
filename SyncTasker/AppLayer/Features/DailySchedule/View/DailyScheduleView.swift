@@ -60,17 +60,7 @@ struct DailyScheduleView: View {
                         }
                         
                         // Задачи с группировкой
-                        ForEach(Array(viewModel.dailyTasks.keys), id: \.self) { offset in
-                            if let tasks = viewModel.dailyTasks[offset] {
-                                HStack(spacing: 4) {
-                                    ForEach(tasks, id: \.task.id) { task in
-                                        TaskView(dailyTask: task)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .position(x: geometry.size.width / 2, y: offset + (tasks[0].height / 2))
-                            }
-                        }
+                        groupingTasks(with: geometry)
                     }
                 }
                 .frame(height: Constants.hourRowHeight * 24)
@@ -80,22 +70,19 @@ struct DailyScheduleView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(viewModel.navigationTitle)
     }
-}
-
-// MARK: - Task View
-
-private struct TaskView: View {
-    let dailyTask: DailyTask
     
-    var body: some View {
-        VStack {
-            Text(dailyTask.task.title)
-                .font(.subheadline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 8)
-            Spacer()
+    func groupingTasks(with geometry: GeometryProxy) -> some View {
+        let keys = Array(viewModel.dailyTasks.keys)
+        return ForEach(keys, id: \.self) { offset in
+            if let tasks = viewModel.dailyTasks[offset] {
+                HStack(spacing: 4) {
+                    ForEach(tasks, id: \.task.id) { dailyTask in
+                        DailyScheduleTaskView(dailyTask: dailyTask) { viewModel.navigateToTaskDetail(dailyTask.task) }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .position(x: geometry.size.width / 2, y: offset + (tasks[0].height / 2))
+            }
         }
-        .frame(height: dailyTask.height)
-        .background(Color.accentColor.opacity(0.2))
     }
 }

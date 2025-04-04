@@ -38,6 +38,12 @@ class DailyScheduleViewModel: ObservableObject {
         organizeTasksByHour()
     }
     
+    // MARK: - Navigation Methods
+    
+    func navigateToTaskDetail(_ task: TaskItem?) {
+        Task { await navigationService.navigate(to: .taskDetail(task)) }
+    }
+
     // MARK: - Private Methods
     
     private func organizeTasksByHour() {

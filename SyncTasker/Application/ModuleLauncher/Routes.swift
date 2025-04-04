@@ -16,18 +16,20 @@ enum Route: Hashable, Identifiable {
     case calendar
     case taskDetail(TaskItem?)
     case dailySchedule(Date, [TaskItem])
+    case freeTime
     
     var id: String {
         switch self {
         case .calendar: return "calendar"
         case .taskDetail(_): return "taskDetail"
         case .dailySchedule(_,_): return "dailySchedule"
+        case .freeTime: return "freeTime"
         }
     }
     
     var isModal: Bool {
         switch self {
-        case .calendar, .dailySchedule: return false
+        case .calendar, .dailySchedule, .freeTime: return false
         case .taskDetail: return true
         }
     }

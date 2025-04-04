@@ -50,6 +50,7 @@ class TaskDetailViewModel: ObservableObject {
         if let task {
             self.title = task.title
             self.taskDescription = task.description ?? ""
+            self.isAllDay = task.isAllDay
             self.startDate = task.startDate
             self.endDate = task.endDate ?? startDate?.addingTimeInterval(3600)
             self.isCompleted = task.isCompleted

@@ -73,6 +73,10 @@ class CalendarViewModel: NSObject, ObservableObject {
         Task { await navigationService.navigate(to: .dailySchedule(date, tasks)) }
     }
     
+    func navigateToFreeTime() {
+        Task { await navigationService.navigate(to: .freeTime) }
+    }
+    
     // MARK: - Public Methods
         
     func updateTaskDate(task: UUID, to date: Date?) {
