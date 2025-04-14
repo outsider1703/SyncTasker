@@ -19,22 +19,28 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Published Properties
     
+    @Published var year: [[DayItem]] = []
+    
     @Published var tasks: [TaskItem] = []
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
     @Published var errorMessage: String?
     @Published var selectedFilter: TaskFilterOption = .all
-    
+    @Published var calendarViewType: CalendarViewType = .month
+    @Published var selectedDate = Date()
+    @Published var currentMoutn = Date()
+
     // MARK: - Computed Properties
     
-    var dailyTasks: [Date: [TaskItem]] { appointmentTasks }
-    
     var statistics: TaskStatistics { TaskStatistics(tasks: tasks) }
-    
     var taskSections: [TaskGroupSection] {
         let filtered = backlogTasks.filter { selectedFilter.filter($0) }
         return TaskGroupSection.group(filtered)
     }
+    
+    // MARK: - Private Properties
+    
+    private let calendar = Calendar.current
     
     // MARK: - Initialization
     
@@ -91,8 +97,63 @@ class CalendarViewModel: NSObject, ObservableObject {
         }
     }
     
+    func didTapYearLabel() {
+        calendarViewType = .year
+    }
+    
+    func didTapMonth(with date: [DayItem]) {
+        calendarViewType = .month
+//        currentMoutn = date
+//        
+//        let isCurrentMonth = calendar.dateComponents([.month], from: date) == calendar.dateComponents([.month], from: Date())
+//        selectedDate = isCurrentMonth ? Date() : date
+    }
+    
     // MARK: - Private Methods
     
+    private func getMonthsInYear() {
+        let interval = calendar.dateInterval(of: .year, for: Date())!
+        var months: [[DayItem]] = []
+        var date = interval.start
+        
+        while date < interval.end {
+            let daysInMonth = generateDaysForMonth(date)
+            months.append(daysInMonth)
+            date = calendar.date(byAdding: .month, value: 1, to: date)!
+        }
+        
+        year = months
+    }
+    
+    private func generateDaysForMonth(_ month: Date) -> [DayItem] {
+        guard let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: month)),
+              
+                let daysRange = calendar.range(of: .day, in: .month, for: firstDayOfMonth)
+                
+        else { return [] }
+        
+        var days: [DayItem] = []
+
+        // Создаются пустые дни ( отступы ) в начале месяца для отображения экрана года
+        let firstWeekday = (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7 + 1
+        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID(), type: .yearSpacing, date: nil, tasks: nil)) }
+        // Создается пустой день перед началом месяца для отображения в списке дней
+        days.append(DayItem(id: UUID(), type: .monthSpacing, date: nil, tasks: nil))
+        
+        
+        for day in daysRange {
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
+                days.append(DayItem(id: UUID(), type: .day, date: date, tasks: appointmentTasks[date]))
+            }
+        }
+        
+        while days.count < 42 {
+            days.append(DayItem(id: UUID(), type: .yearSpacing, date: nil, tasks: nil))
+        }
+        
+        return days
+    }
+
     private func loadTasks() {
         do {
             try fetchController.performFetch()
@@ -101,6 +162,7 @@ class CalendarViewModel: NSObject, ObservableObject {
             
             appointmentTasks = groupedTasks.appointmentTasks
             backlogTasks = groupedTasks.backlogTasks
+            getMonthsInYear()
         } catch {
             errorMessage = error.localizedDescription
         }

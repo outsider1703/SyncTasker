@@ -36,6 +36,7 @@ struct DateSection: View {
     }
     
     // MARK: - View
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
@@ -85,6 +86,8 @@ struct DateSection: View {
         .animation(.spring(duration: 0.3, bounce: 0.2), value: activePicker)
     }
     
+    // MARK: - Subviews
+
     private func customButton(date: Date?, icon: String, format: DateFormat, pickerType: ActivePicker, isActive: Bool) -> some View {
         Button {
             withAnimation(.spring(duration: 0.3, bounce: 0.2)) { activePicker = activePicker == pickerType ? .none : pickerType }

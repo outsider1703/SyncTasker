@@ -71,7 +71,9 @@ struct DailyScheduleView: View {
         .navigationTitle(viewModel.navigationTitle)
     }
     
-    func groupingTasks(with geometry: GeometryProxy) -> some View {
+    // MARK: - Subviews
+
+    private func groupingTasks(with geometry: GeometryProxy) -> some View {
         let keys = Array(viewModel.dailyTasks.keys)
         return ForEach(keys, id: \.self) { offset in
             if let tasks = viewModel.dailyTasks[offset] {

@@ -11,24 +11,22 @@ struct DayView: View {
     
     // MARK: - Private Properties
     
-    private var tasks: [TaskItem] = []
     private let date: Date
+    private var tasks: [TaskItem] = []
     private let onTap: () -> Void
-    private let calendar = Calendar.current
     private let onTaskDropped: (UUID, Date) -> Void
     
     // MARK: - Initialization
     
     init(
-        date: Date,
-        tasks: [TaskItem],
+        dayItem: DayItem,
         onTap: @escaping () -> Void,
         onTaskDropped: @escaping (UUID, Date) -> Void
     ) {
-        self.date = date
-        self.tasks = tasks
-        self.onTap = onTap
+        self.date = dayItem.date ?? Date()
+        self.tasks = dayItem.tasks ?? []
         self.onTaskDropped = onTaskDropped
+        self.onTap = onTap
     }
     
     // MARK: - Body
@@ -44,7 +42,7 @@ struct DayView: View {
                     }
                     .padding(.horizontal, 8)
                 }
-                Text("\(calendar.component(.day, from: date))")
+                Text("\(Calendar.current.component(.day, from: date))")
                     .font(Theme.Typography.bodyFont)
                     .padding(8)
             }

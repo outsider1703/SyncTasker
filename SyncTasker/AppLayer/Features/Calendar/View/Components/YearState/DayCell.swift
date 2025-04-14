@@ -21,6 +21,8 @@ struct DayCell: View {
         self.dayItem = dayItem
     }
     
+    // MARK: - Body
+
     var body: some View {
         if let date = dayItem.date {
             let isCurrentDate = Calendar.current.isDate(date, inSameDayAs: Date())

@@ -10,10 +10,7 @@ import SwiftUI
 // MARK: - Constants
 
 private enum Constants {
-    static let monthTitleScale: CGFloat = 1.2
-    static let titleAnimationDuration: Double = 0.3
     static let gradientHeight: CGFloat = 150
-    static let floatingButtonPadding: CGFloat = 16
     static let floatingButtonSize: CGFloat = 56
     static let addIcon = "plus"
 }
@@ -24,12 +21,12 @@ struct CalendarView: View {
     
     @StateObject private var viewModel: CalendarViewModel
     
-    // MARK: - Private Properties
+    // MARK: - Computed Properties
     
-    @State private var selectedDate = Date()
-    @State private var currentMoutn = Date()
-    @State private var viewType: CalendarViewType = .month
-    @State private var isTitleAnimating = false
+    private var calendarTitle: String {
+        let format = viewModel.calendarViewType == .month ? "MMMM yyyy" : "yyyy"
+        return viewModel.currentMoutn.toString(format: format)
+    }
     
     // MARK: - Initialization
     
@@ -43,23 +40,23 @@ struct CalendarView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            switch viewType {
+            switch viewModel.calendarViewType {
             case .month:
                 HStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(currentMoutn.toString(format: viewType == .month ? "MMMM yyyy" : "yyyy"))
+                        Text(calendarTitle)
                             .font(Theme.Typography.headlineFont)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .onTapGesture { switchToYearView() }
+                            .onTapGesture { viewModel.didTapYearLabel() }
                             .padding(.leading, 16)
                         
                         Divider()
                             .padding(.vertical, 4)
                         
                         MonthView(
-                            selectedDate: $selectedDate,
-                            currentMonth: $currentMoutn,
-                            dailyTasks: viewModel.dailyTasks,
+                            month: viewModel.year.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing}),
+                            selectedDate: $viewModel.selectedDate,
+                            currentMonth: $viewModel.currentMoutn,
                             onTaskDropped: { task, date in
                                 viewModel.updateTaskDate(task: task, to: date)
                             }, routeToDailySchedule: { date, tasks in
@@ -82,8 +79,10 @@ struct CalendarView: View {
                 }
                 
             case .year:
-                YearView(selectedDate: $selectedDate, statistics: viewModel.statistics, onMonthSelected: switchToMonthView)
-                    .frame(maxWidth: .infinity)
+                YearView(year: viewModel.year, statistics: viewModel.statistics) { date in
+                    viewModel.didTapMonth(with: date)
+                }
+                .frame(maxWidth: .infinity)
             }
             
             VStack(spacing: 0) {
@@ -119,33 +118,5 @@ struct CalendarView: View {
             .padding([.bottom, .horizontal], 32)
         }
         .ignoresSafeArea(edges: .bottom)
-    }
-    
-    // MARK: - Private Methods
-    
-    private func switchToYearView() {
-        withAnimation {
-            isTitleAnimating = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                viewType = .year
-                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                    isTitleAnimating = false
-                }
-            }
-        }
-    }
-    
-    private func switchToMonthView(with date: Date) {
-        withAnimation {
-            isTitleAnimating = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                currentMoutn = date
-                selectedDate = date
-                viewType = .month
-                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.titleAnimationDuration/2) {
-                    isTitleAnimating = false
-                }
-            }
-        }
     }
 }

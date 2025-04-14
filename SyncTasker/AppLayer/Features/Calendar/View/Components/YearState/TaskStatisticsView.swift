@@ -135,6 +135,8 @@ private struct CompletionProgressView: View {
         self.isAnimating = isAnimating
     }
     
+    // MARK: - Body
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(Constants.completion)

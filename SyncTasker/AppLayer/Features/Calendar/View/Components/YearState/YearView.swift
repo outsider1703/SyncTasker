@@ -11,20 +11,19 @@ struct YearView: View {
     
     // MARK: - Private Properties
     
-    @Binding private var selectedDate: Date
-    private let onMonthSelected: (Date) -> Void
-    private let calendar = Calendar.current
+    @State private var year: [[DayItem]]
+    private let onMonthSelected: ([DayItem]) -> Void
     private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
     private let statistics: TaskStatistics
     
     // MARK: - Initialization
     
     init(
-        selectedDate: Binding<Date>,
+        year: [[DayItem]],
         statistics: TaskStatistics,
-        onMonthSelected: @escaping (Date) -> Void
+        onMonthSelected: @escaping ([DayItem]) -> Void
     ) {
-        self._selectedDate = selectedDate
+        self.year = year
         self.statistics = statistics
         self.onMonthSelected = onMonthSelected
     }
@@ -35,7 +34,7 @@ struct YearView: View {
         VStack {
             ScrollView {
                 LazyVGrid(columns: monthColumns, spacing: 20) {
-                    ForEach(getMonthsInYear(), id: \.self) { month in
+                    ForEach(year, id: \.self) { month in
                         MonthGridItem(month: month, onMonthSelected: onMonthSelected)
                     }
                 }
@@ -45,25 +44,5 @@ struct YearView: View {
                     .padding(.horizontal, 16)
             }
         }
-    }
-    
-    // MARK: - Helper Functions
-    
-    private var startOfYear: Date {
-        let components = calendar.dateComponents([.year], from: selectedDate)
-        return calendar.date(from: components) ?? selectedDate
-    }
-    
-    private func getMonthsInYear() -> [Date] {
-        let interval = calendar.dateInterval(of: .year, for: startOfYear)!
-        var months: [Date] = []
-        var date = interval.start
-        
-        while date < interval.end {
-            months.append(date)
-            date = calendar.date(byAdding: .month, value: 1, to: date)!
-        }
-        
-        return months
     }
 }

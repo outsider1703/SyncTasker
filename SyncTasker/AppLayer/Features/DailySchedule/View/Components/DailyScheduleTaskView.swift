@@ -22,8 +22,6 @@ struct DailyScheduleTaskView: View {
         }
         .frame(height: dailyTask.height)
         .background(Color.accentColor.opacity(0.2))
-        .onTapGesture {
-            didTouchTask()
-        }
+        .onTapGesture { didTouchTask() }
     }
 }

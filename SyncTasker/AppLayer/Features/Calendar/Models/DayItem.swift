@@ -7,7 +7,19 @@
 
 import Foundation
 
-struct DayItem: Identifiable {
-    let id: Int
+enum DayItemType {
+    case day
+    case yearSpacing
+    case monthSpacing
+}
+
+struct DayItem: Identifiable, Hashable {
+    
+    let id: UUID
+    
+    let type: DayItemType
+    
     let date: Date?
+    
+    let tasks: [TaskItem]?
 }
