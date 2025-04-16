@@ -9,24 +9,21 @@ import SwiftUI
 
 struct DayView: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     private let date: Date
     private var tasks: [TaskItem] = []
-    private let onTap: () -> Void
     private let onTaskDropped: (UUID, Date) -> Void
     
     // MARK: - Initialization
     
     init(
-        dayItem: DayItem,
-        onTap: @escaping () -> Void,
+        dayItem: DayItem?,
         onTaskDropped: @escaping (UUID, Date) -> Void
     ) {
-        self.date = dayItem.date ?? Date()
-        self.tasks = dayItem.tasks ?? []
+        self.date = dayItem?.date ?? Date()
+        self.tasks = dayItem?.tasks ?? []
         self.onTaskDropped = onTaskDropped
-        self.onTap = onTap
     }
     
     // MARK: - Body
@@ -54,7 +51,6 @@ struct DayView: View {
             .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
         }
         .foregroundColor(.black)
-        .onTapGesture(perform: onTap)
         .dropDestination(for: String.self) { items, _ in
             guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
             onTaskDropped(taskId, date)

@@ -54,8 +54,7 @@ struct CalendarView: View {
                             .padding(.vertical, 4)
                         
                         MonthView(
-                            month: viewModel.year.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing}),
-                            selectedDate: $viewModel.selectedDate,
+                            month: viewModel.listDaysInMonth,
                             currentMonth: $viewModel.currentMoutn,
                             onTaskDropped: { task, date in
                                 viewModel.updateTaskDate(task: task, to: date)
@@ -79,7 +78,7 @@ struct CalendarView: View {
                 }
                 
             case .year:
-                YearView(year: viewModel.year, statistics: viewModel.statistics) { date in
+                YearView(year: viewModel.daysInYear, statistics: viewModel.statistics) { date in
                     viewModel.didTapMonth(with: date)
                 }
                 .frame(maxWidth: .infinity)

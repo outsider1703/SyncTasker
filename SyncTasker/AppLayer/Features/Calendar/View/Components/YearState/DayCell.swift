@@ -9,8 +9,8 @@ import SwiftUI
 
 struct DayCell: View {
     
-    // MARK: - Private Properties
-    
+    // MARK: - Initial Private Properties
+
     private let dayItem: DayItem
     
     // MARK: - Initialization

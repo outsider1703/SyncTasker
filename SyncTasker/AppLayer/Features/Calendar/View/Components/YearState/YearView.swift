@@ -9,12 +9,15 @@ import SwiftUI
 
 struct YearView: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @State private var year: [[DayItem]]
-    private let onMonthSelected: ([DayItem]) -> Void
-    private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
     private let statistics: TaskStatistics
+    private let onMonthSelected: ([DayItem]) -> Void
+    
+    // MARK: - Private Properties
+    
+    private let monthColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 3)
     
     // MARK: - Initialization
     
@@ -35,7 +38,8 @@ struct YearView: View {
             ScrollView {
                 LazyVGrid(columns: monthColumns, spacing: 20) {
                     ForEach(year, id: \.self) { month in
-                        MonthGridItem(month: month, onMonthSelected: onMonthSelected)
+                        MonthGridItem(month: month)
+                            .onTapGesture { onMonthSelected(month) }
                     }
                 }
                 .padding(.horizontal, 16)

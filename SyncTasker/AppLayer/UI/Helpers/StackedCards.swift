@@ -16,13 +16,15 @@ import SwiftUI
 @MainActor
 struct StackedCards<Content: View>: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
 
     private var items: [DayItem]
-    private var selectedDate: Date
+    @Binding private var currentMonth: Date
     private var itemHeight: CGFloat
-    private var onMonthChanged: (Date) -> Void
     @ViewBuilder private var content: (DayItem) -> Content
+    
+    // MARK: - Private Properties
+
     private var stackedDisplayCount: Int = 3
     private var opacityDisplayCount: Int = 2
     private var disablesOpacityEffect: Bool = false
@@ -31,15 +33,13 @@ struct StackedCards<Content: View>: View {
 
     init(
         items: [DayItem],
-        selectedDate: Date,
+        currentMonth: Binding<Date>,
         itemHeight: CGFloat,
-        onMonthChanged: @escaping (Date) -> Void,
         @ViewBuilder content: @escaping (DayItem) -> Content
     ) {
         self.items = items
-        self.selectedDate = selectedDate
+        self._currentMonth = currentMonth
         self.itemHeight = itemHeight
-        self.onMonthChanged = onMonthChanged
         self.content = content
     }
     
@@ -72,12 +72,11 @@ struct StackedCards<Content: View>: View {
                                             // Если скролл вверх
                                             if newValue < 0 {
                                                 if let nextDate = getNextDate(for: item, in: items) {
-                                                    onMonthChanged(nextDate)
+                                                    self.currentMonth = nextDate
                                                 }
-                                            }
-                                            // Если скролл вниз
-                                            else if let prevDate = getPreviousDate(for: item, in: items) {
-                                                onMonthChanged(prevDate)
+                                            } else if let prevDate = getPreviousDate(for: item, in: items) {
+                                                // Если скролл вниз
+                                                self.currentMonth = prevDate
                                             }
                                         }
                                     }
@@ -88,10 +87,10 @@ struct StackedCards<Content: View>: View {
                 }
                 .padding(.top, itemHeight * CGFloat(stackedDisplayCount))
             }
-            .onAppear {
+            .onFirstAppear {
                 if let currentIndex = items.firstIndex(where: {
                     guard let date = $0.date else { return false }
-                    return Calendar.current.isDate(date, equalTo: selectedDate, toGranularity: .day)
+                    return Calendar.current.isDate(date, equalTo: currentMonth, toGranularity: .day)
                 }) {
                     scrollProxy.scrollTo(items[currentIndex].id, anchor: .top)
                 }

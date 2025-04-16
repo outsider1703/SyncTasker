@@ -19,7 +19,8 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Published Properties
     
-    @Published var year: [[DayItem]] = []
+    @Published var daysInYear: [[DayItem]] = []
+    @Published var listDaysInMonth: [DayItem] = []
     
     @Published var tasks: [TaskItem] = []
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
@@ -41,7 +42,13 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Private Properties
     
     private let calendar = Calendar.current
-    
+    private var currentYear: [[DayItem]] = [] {
+        didSet {
+            daysInYear = currentYear.map({ $0.filter({ $0.type == .day || $0.type == .yearSpacing }) })
+            listDaysInMonth = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
+        }
+    }
+
     // MARK: - Initialization
     
     init(
@@ -75,7 +82,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
-    func navigateToDailySchedule(_ date: Date, _ tasks: [TaskItem]) {
+    func navigateToDailySchedule(_ date: Date?, _ tasks: [TaskItem]) {
+        guard let date else { return }
         Task { await navigationService.navigate(to: .dailySchedule(date, tasks)) }
     }
     
@@ -101,54 +109,48 @@ class CalendarViewModel: NSObject, ObservableObject {
         calendarViewType = .year
     }
     
-    func didTapMonth(with date: [DayItem]) {
+    func didTapMonth(with month: [DayItem]) {
         calendarViewType = .month
-//        currentMoutn = date
-//        
-//        let isCurrentMonth = calendar.dateComponents([.month], from: date) == calendar.dateComponents([.month], from: Date())
-//        selectedDate = isCurrentMonth ? Date() : date
+        guard let firstDayFromSelectedMonth = month.first(where: { $0.type == .day })?.date else { return }
+        let isCurrentMonth = calendar.dateComponents([.month], from: firstDayFromSelectedMonth) == calendar.dateComponents([.month], from: Date())
+        currentMoutn = isCurrentMonth ? Date() : firstDayFromSelectedMonth
     }
     
     // MARK: - Private Methods
     
     private func getMonthsInYear() {
         let interval = calendar.dateInterval(of: .year, for: Date())!
+        var startDate = interval.start
         var months: [[DayItem]] = []
-        var date = interval.start
         
-        while date < interval.end {
-            let daysInMonth = generateDaysForMonth(date)
+        while startDate < interval.end {
+            let daysInMonth = generateDaysForMonth(startDate)
             months.append(daysInMonth)
-            date = calendar.date(byAdding: .month, value: 1, to: date)!
+            startDate = calendar.date(byAdding: .month, value: 1, to: startDate)!
         }
         
-        year = months
+        currentYear = months
     }
     
     private func generateDaysForMonth(_ month: Date) -> [DayItem] {
         guard let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: month)),
-              
-                let daysRange = calendar.range(of: .day, in: .month, for: firstDayOfMonth)
-                
+              let daysRange = calendar.range(of: .day, in: .month, for: firstDayOfMonth)
         else { return [] }
         
         var days: [DayItem] = []
-
+        
         // Создаются пустые дни ( отступы ) в начале месяца для отображения экрана года
         let firstWeekday = (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7 + 1
-        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID(), type: .yearSpacing, date: nil, tasks: nil)) }
+        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID(), type: .yearSpacing)) }
+        
         // Создается пустой день перед началом месяца для отображения в списке дней
-        days.append(DayItem(id: UUID(), type: .monthSpacing, date: nil, tasks: nil))
+        days.append(DayItem(id: UUID(), type: .monthSpacing))
         
-        
+        // Добавляем обычны дни со списком задач для каждого дня
         for day in daysRange {
             if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
                 days.append(DayItem(id: UUID(), type: .day, date: date, tasks: appointmentTasks[date]))
             }
-        }
-        
-        while days.count < 42 {
-            days.append(DayItem(id: UUID(), type: .yearSpacing, date: nil, tasks: nil))
         }
         
         return days

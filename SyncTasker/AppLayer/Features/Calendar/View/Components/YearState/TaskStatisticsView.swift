@@ -17,12 +17,15 @@ private enum Constants {
 
 struct TaskStatisticsView: View {
     
+    // MARK: - Initial Private Properties
+
+    private let statistics: TaskStatistics
+    
     // MARK: - Private Properties
     
     @State private var isAnimating = false
     @State private var animatedTotal: Int = 0
     @State private var timer: Timer? = nil
-    private let statistics: TaskStatistics
     
     // MARK: - Initialization
     
