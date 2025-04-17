@@ -13,7 +13,7 @@ struct MonthView: View {
     
     @State private var months: [DayItem] = []
     @Binding private var currentMonth: Date
-    private let onTaskDropped: (UUID, Date) -> Void
+    private let onTaskDropped: (UUID, Date?) -> Void
     private let routeToDailySchedule: (Date?, [TaskItem]) -> Void
     
     // MARK: - Initialization
@@ -21,7 +21,7 @@ struct MonthView: View {
     init(
         month: [DayItem],
         currentMonth: Binding<Date>,
-        onTaskDropped: @escaping (UUID, Date) -> Void,
+        onTaskDropped: @escaping (UUID, Date?) -> Void,
         routeToDailySchedule: @escaping (Date?, [TaskItem]) -> Void
     ) {
         self.months = month

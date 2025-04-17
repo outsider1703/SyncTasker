@@ -12,24 +12,19 @@ private enum Constants {
     static let travelTimeTitle = "Время в пути"
 }
 
-enum ActivePicker {
-    case none
-    case date
-    case startTime
-    case endTime
-    case travelTime
-}
-
 struct TaskDatesSection: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
-    @State private var activePicker: ActivePicker = .none
     @Binding private var startDate: Date?
     @Binding private var endDate: Date?
     @Binding private var isAllDay: Bool
     @Binding private var travelTime: TravelTime
     
+    // MARK: - Private Properties
+    
+    @State private var activePicker: ActivePicker = .none
+
     // MARK: - Initialization
     
     init(
@@ -54,14 +49,14 @@ struct TaskDatesSection: View {
                 }
             
             DateSection(
+                activePicker: $activePicker,
                 startDate: $startDate,
                 endDate: $endDate,
-                isAllDay: isAllDay,
-                activePicker: $activePicker
+                isAllDay: isAllDay
             )
             
             if !isAllDay {
-                CustomPicker(Constants.travelTimeTitle, selection: $travelTime) {
+                CustomPicker(selection: $travelTime, Constants.travelTimeTitle) {
                     ForEach(TravelTime.allCases, id: \.self) { time in
                         Label(time.title, systemImage: "clock")
                             .tag(time)

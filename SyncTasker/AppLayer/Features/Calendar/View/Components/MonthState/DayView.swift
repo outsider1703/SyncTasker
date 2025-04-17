@@ -11,17 +11,23 @@ struct DayView: View {
     
     // MARK: - Initial Private Properties
     
-    private let date: Date
+    private let date: Date?
+    private let type: DayItemType?
     private var tasks: [TaskItem] = []
-    private let onTaskDropped: (UUID, Date) -> Void
+    private let onTaskDropped: (UUID, Date?) -> Void
+    
+    // MARK: - Initial Private Properties
+
+    private var isDay: Bool { type == .day }
     
     // MARK: - Initialization
     
     init(
         dayItem: DayItem?,
-        onTaskDropped: @escaping (UUID, Date) -> Void
+        onTaskDropped: @escaping (UUID, Date?) -> Void
     ) {
-        self.date = dayItem?.date ?? Date()
+        self.date = dayItem?.date
+        self.type = dayItem?.type
         self.tasks = dayItem?.tasks ?? []
         self.onTaskDropped = onTaskDropped
     }
@@ -31,6 +37,13 @@ struct DayView: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             HStack(alignment: .top) {
+                if let dateTitle = date?.toString(format: isDay ? "dd" : "MMMM") {
+                    Text(dateTitle)
+                        .font(Theme.Typography.bodyFont)
+                        .padding(8)
+                }
+                Spacer()
+
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 4) {
                         ForEach(tasks) { task in
@@ -39,14 +52,11 @@ struct DayView: View {
                     }
                     .padding(.horizontal, 8)
                 }
-                Text("\(Calendar.current.component(.day, from: date))")
-                    .font(Theme.Typography.bodyFont)
-                    .padding(8)
             }
             .frame(width: 150, height: 150)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(.white)
+                    .fill(isDay ? .white : .clear)
             )
             .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
         }

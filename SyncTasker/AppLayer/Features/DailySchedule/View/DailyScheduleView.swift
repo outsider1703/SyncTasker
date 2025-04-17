@@ -10,7 +10,6 @@ import SwiftUI
 // MARK: - Constants
 
 private enum Constants {
-    static let taskCornerRadius: CGFloat = 12
     static let hourRowHeight: CGFloat = 60
     static let timeColumnWidth: CGFloat = 24
 }
@@ -20,8 +19,6 @@ struct DailyScheduleView: View {
     // MARK: - ViewModel
     
     @StateObject private var viewModel: DailyScheduleViewModel
-    
-    // MARK: - Private Properties
     
     // MARK: - Initialization
     
@@ -38,29 +35,10 @@ struct DailyScheduleView: View {
             ScrollView(showsIndicators: false) {
                 GeometryReader { geometry in
                     ZStack(alignment: .topLeading) {
-                        // Часовая сетка
-                        VStack(spacing: 0) {
-                            ForEach(0..<24) { hour in
-                                HStack(alignment: .top, spacing: 0) {
-                                    VStack {
-                                        Text(String(format: "%02d", hour))
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                    }
-                                    .frame(width: Constants.timeColumnWidth)
-                                    .padding(.top, 4)
-                                    
-                                    Rectangle()
-                                        .fill(.gray.opacity(0.2))
-                                        .frame(height: 1)
-                                }
-                                .frame(height: Constants.hourRowHeight)
-                            }
+                        hourGrid
+                        GroupingTasksView(dailyTasks: viewModel.dailyTasks, geometry: geometry) { task in
+                            viewModel.navigateToTaskDetail(task)
                         }
-                        
-                        // Задачи с группировкой
-                        groupingTasks(with: geometry)
                     }
                 }
                 .frame(height: Constants.hourRowHeight * 24)
@@ -73,17 +51,24 @@ struct DailyScheduleView: View {
     
     // MARK: - Subviews
 
-    private func groupingTasks(with geometry: GeometryProxy) -> some View {
-        let keys = Array(viewModel.dailyTasks.keys)
-        return ForEach(keys, id: \.self) { offset in
-            if let tasks = viewModel.dailyTasks[offset] {
-                HStack(spacing: 4) {
-                    ForEach(tasks, id: \.task.id) { dailyTask in
-                        DailyScheduleTaskView(dailyTask: dailyTask) { viewModel.navigateToTaskDetail(dailyTask.task) }
+    private var hourGrid: some View {
+        VStack(spacing: 0) {
+            ForEach(0..<24) { hour in
+                HStack(alignment: .top, spacing: 0) {
+                    VStack {
+                        Text(String(format: "%02d", hour))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Spacer()
                     }
+                    .frame(width: Constants.timeColumnWidth)
+                    .padding(.top, 4)
+                    
+                    Rectangle()
+                        .fill(.gray.opacity(0.2))
+                        .frame(height: 1)
                 }
-                .frame(maxWidth: .infinity)
-                .position(x: geometry.size.width / 2, y: offset + (tasks[0].height / 2))
+                .frame(height: Constants.hourRowHeight)
             }
         }
     }

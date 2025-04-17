@@ -9,9 +9,20 @@ import SwiftUI
 
 struct DailyScheduleTaskView: View {
     
-    let dailyTask: DailyTask
-    let didTouchTask: () -> Void
+    // MARK: - Initial Private Properties
+
+    private let dailyTask: DailyTask
     
+    // MARK: - Initialization
+
+    init(
+        dailyTask: DailyTask
+    ) {
+        self.dailyTask = dailyTask
+    }
+    
+    // MARK: - Body
+
     var body: some View {
         VStack {
             Text(dailyTask.task.title)
@@ -22,6 +33,5 @@ struct DailyScheduleTaskView: View {
         }
         .frame(height: dailyTask.height)
         .background(Color.accentColor.opacity(0.2))
-        .onTapGesture { didTouchTask() }
     }
 }

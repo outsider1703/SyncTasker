@@ -18,7 +18,7 @@ private enum Constants {
 
 struct TaskDetailView: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @StateObject private var viewModel: TaskDetailViewModel
     

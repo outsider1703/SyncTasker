@@ -14,14 +14,12 @@ private enum Constants {
     static let navigationTitle = "Backlog"
     static let errorTitle = "Error"
     static let okButton = "OK"
-    static let addTaskTitle = "Add Task"
-    static let sortTitle = "Sort By"
     static let filterTitle = "Filter"
 }
 
 struct TaskListView: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @Binding private var selectedFilter: TaskFilterOption
     @Binding private var errorMessage: String?
@@ -32,15 +30,15 @@ struct TaskListView: View {
     // MARK: - Initialization
     
     init(
-        taskSections: [TaskGroupSection],
         selectedFilter: Binding<TaskFilterOption>,
         errorMessage: Binding<String?>,
+        taskSections: [TaskGroupSection],
         navigateToTaskDetail: @escaping (TaskItem?) -> Void,
         backlogDropped: @escaping (UUID) -> Void
     ) {
-        self.taskSections = taskSections
         self._selectedFilter = selectedFilter
         self._errorMessage = errorMessage
+        self.taskSections = taskSections
         self.navigateToTaskDetail = navigateToTaskDetail
         self.backlogDropped = backlogDropped
     }

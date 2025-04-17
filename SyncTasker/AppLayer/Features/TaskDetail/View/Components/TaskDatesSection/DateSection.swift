@@ -9,33 +9,28 @@ import SwiftUI
 
 struct DateSection: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @Binding private var activePicker: ActivePicker
     @Binding private var startDate: Date?
     @Binding private var endDate: Date?
     private let isAllDay: Bool
     
-    private enum DateFormat {
-        case date
-        case time
-    }
-    
     // MARK: - Initialization
     
     init(
+        activePicker: Binding<ActivePicker>,
         startDate: Binding<Date?>,
         endDate: Binding<Date?>,
-        isAllDay: Bool,
-        activePicker: Binding<ActivePicker>
+        isAllDay: Bool
     ) {
+        self._activePicker = activePicker
         self._startDate = startDate
         self._endDate = endDate
         self.isAllDay = isAllDay
-        self._activePicker = activePicker
     }
     
-    // MARK: - View
+    // MARK: - Body
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -45,10 +40,31 @@ struct DateSection: View {
                     .foregroundColor(Theme.Colors.primary)
                 Spacer()
                 
-                customButton(date: startDate, icon: "calendar", format: .date, pickerType: .date, isActive: activePicker == .date)
+                CustomDateButton(
+                    date: startDate,
+                    icon: "calendar",
+                    format: .date,
+                    isActive: activePicker == .date,
+                    pickerType: .date,
+                    activePicker: $activePicker
+                )
                 if !isAllDay {
-                    customButton(date: startDate, icon: "clock", format: .time, pickerType: .startTime, isActive: activePicker == .startTime)
-                    customButton(date: endDate, icon: "clock", format: .time, pickerType: .endTime, isActive: activePicker == .endTime)
+                    CustomDateButton(
+                        date: startDate,
+                        icon: "clock",
+                        format: .time,
+                        isActive: activePicker == .startTime,
+                        pickerType: .startTime,
+                        activePicker: $activePicker
+                    )
+                    CustomDateButton(
+                        date: endDate,
+                        icon: "clock",
+                        format: .time,
+                        isActive: activePicker == .endTime,
+                        pickerType: .endTime,
+                        activePicker: $activePicker
+                    )
                 }
             }
             
@@ -84,29 +100,5 @@ struct DateSection: View {
         }
         .padding(.vertical, 4)
         .animation(.spring(duration: 0.3, bounce: 0.2), value: activePicker)
-    }
-    
-    // MARK: - Subviews
-
-    private func customButton(date: Date?, icon: String, format: DateFormat, pickerType: ActivePicker, isActive: Bool) -> some View {
-        Button {
-            withAnimation(.spring(duration: 0.3, bounce: 0.2)) { activePicker = activePicker == pickerType ? .none : pickerType }
-        } label: {
-            HStack {
-                Image(systemName: icon)
-                    .font(.system(size: 14))
-                    .foregroundColor(Theme.Colors.accent)
-                let title = format == .date ? date?.formatted(date: .abbreviated, time: .omitted) ?? "date" : date?.formatted(date: .omitted, time: .shortened) ?? "time"
-                Text(title)
-                    .font(Theme.Typography.bodyFont)
-                    .foregroundColor(Theme.Colors.primary)
-            }
-            .padding(.vertical, 6)
-            .padding(.horizontal, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(UIColor.systemGray6))
-            )
-        }
     }
 }

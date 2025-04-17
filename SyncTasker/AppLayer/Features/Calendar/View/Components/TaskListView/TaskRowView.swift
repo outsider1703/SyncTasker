@@ -30,12 +30,6 @@ struct TaskRowView: View {
                 .foregroundColor(Theme.Colors.primary)
                 .strikethrough(task.isCompleted)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
-            if let endDate = task.endDate {
-                Text(endDate, style: .date)
-                    .font(Theme.Typography.captionFont)
-                    .foregroundColor(Theme.Colors.secondary)
-            }
         }
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -144,7 +144,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         for _ in 1..<firstWeekday { days.append(DayItem(id: UUID(), type: .yearSpacing)) }
         
         // Создается пустой день перед началом месяца для отображения в списке дней
-        days.append(DayItem(id: UUID(), type: .monthSpacing))
+        days.append(DayItem(id: UUID(), type: .monthSpacing, date: month))
         
         // Добавляем обычны дни со списком задач для каждого дня
         for day in daysRange {

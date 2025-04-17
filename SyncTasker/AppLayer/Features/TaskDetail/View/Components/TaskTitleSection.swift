@@ -14,7 +14,7 @@ private enum Constants {
 
 struct TaskTitleSection: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @Binding private var title: String
     @Binding private var description: String?

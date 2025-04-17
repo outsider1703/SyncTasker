@@ -16,7 +16,7 @@ private enum Constants {
 
 struct TaskPropertiesSection: View {
     
-    // MARK: - Private Properties
+    // MARK: - Initial Private Properties
     
     @Binding private var priority: TaskItem.Priority
     @Binding private var repetition: TaskItem.Repetition
@@ -44,21 +44,21 @@ struct TaskPropertiesSection: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            CustomPicker(Constants.priorityTitle, selection: $priority) {
+            CustomPicker(selection: $priority, Constants.priorityTitle) {
                 ForEach(TaskItem.Priority.allCases, id: \.self) { priority in
                     Label(priority.title, systemImage: priority.icon)
                         .tag(priority)
                 }
             }
             
-            CustomPicker(Constants.repeatTitle, selection: $repetition) {
+            CustomPicker(selection: $repetition, Constants.repeatTitle) {
                 ForEach(TaskItem.Repetition.allCases, id: \.self) { repetition in
                     Label(repetition.rawValue, systemImage: "repeat")
                         .tag(repetition)
                 }
             }
             
-            CustomPicker(Constants.reminderTitle, selection: $reminder) {
+            CustomPicker(selection: $reminder, Constants.reminderTitle) {
                 ForEach(TaskItem.Reminder.allCases, id: \.self) { reminder in
                     Label(reminder.rawValue, systemImage: "clock")
                         .tag(reminder)
