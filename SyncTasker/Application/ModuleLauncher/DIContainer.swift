@@ -48,19 +48,19 @@ class DIContainer {
         )
     }
     
-    func makeDailyScheduleViewModel(date: Date, tasks: [TaskItem]) -> DailyScheduleViewModel {
+    func makeDailyScheduleViewModel(dayItem: DayItem) -> DailyScheduleViewModel {
         return DailyScheduleViewModel(
             navigationService: navigationService,
             feedbackManager: feedbackManager,
-            date: date,
-            tasks: tasks
+            dayItem: dayItem
         )
     }
     
-    func makeFreeTimeViewModel() -> FreeTimeViewModel {
+    func makeFreeTimeViewModel(listDaysInMonth: [DayItem]) -> FreeTimeViewModel {
         return FreeTimeViewModel(
             coreDataService: coreDataService,
-            navigationService: navigationService
+            navigationService: navigationService,
+            listDaysInMonth: listDaysInMonth
         )
     }
 }

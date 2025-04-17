@@ -3,4 +3,68 @@
    uuid = "2EDD9C6B-CF95-40ED-BEDC-9826B5829ABB"
    type = "1"
    version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "63A8CE5F-76C4-4DA2-B366-C4DFB3A0D1FB"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SyncTasker/AppLayer/Features/Calendar/ViewModel/CalendarViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "114"
+            endingLineNumber = "114"
+            landmarkName = "didTapMonth(with:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2C076235-0992-413E-B73F-A35C347309D2"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "SyncTasker/AppLayer/Features/FreeTime/ViewModel/FreeTimeViewModel.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "30"
+            endingLineNumber = "30"
+            landmarkName = "init(coreDataService:navigationService:listDaysInMonth:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "2C076235-0992-413E-B73F-A35C347309D2 - 73c44dbe09aff845"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SyncTasker.FreeTimeViewModel.init(coreDataService: SyncTasker.CoreDataServiceProtocol, navigationService: SyncTasker.NavigationServiceProtocol) -&gt; SyncTasker.FreeTimeViewModel"
+                  moduleName = "SyncTasker.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ingvar/Desktop/Pet/SyncTasker/SyncTasker/AppLayer/Features/FreeTime/ViewModel/FreeTimeViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "30"
+                  endingLineNumber = "30">
+               </Location>
+               <Location
+                  uuid = "2C076235-0992-413E-B73F-A35C347309D2 - 49f7355f13f3270c"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "SyncTasker.FreeTimeViewModel.init(coreDataService: SyncTasker.CoreDataServiceProtocol, navigationService: SyncTasker.NavigationServiceProtocol, listDaysInMonth: Swift.Array&lt;SyncTasker.DayItem&gt;) -&gt; SyncTasker.FreeTimeViewModel"
+                  moduleName = "SyncTasker.debug.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/ingvar/Desktop/Pet/SyncTasker/SyncTasker/AppLayer/Features/FreeTime/ViewModel/FreeTimeViewModel.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "30"
+                  endingLineNumber = "30">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
 </Bucket>

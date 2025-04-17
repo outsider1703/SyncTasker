@@ -39,10 +39,10 @@ struct RootView: View {
             TaskDetailView(viewModel: container.makeTaskDetailViewModel(task: task))
         case .calendar:
             CalendarView(viewModel: container.makeCalendarViewModel())
-        case .dailySchedule(let date, let tasks):
-            DailyScheduleView(viewModel: container.makeDailyScheduleViewModel(date: date, tasks: tasks))
-        case .freeTime:
-            FreeTimeView(viewModel: container.makeFreeTimeViewModel())
+        case .dailySchedule(let dayItem):
+            DailyScheduleView(viewModel: container.makeDailyScheduleViewModel(dayItem: dayItem))
+        case .freeTime(let listDaysInMonth):
+            FreeTimeView(viewModel: container.makeFreeTimeViewModel(listDaysInMonth: listDaysInMonth))
         }
     }
 }

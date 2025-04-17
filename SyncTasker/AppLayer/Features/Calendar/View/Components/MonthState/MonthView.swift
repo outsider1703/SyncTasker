@@ -14,7 +14,7 @@ struct MonthView: View {
     @State private var months: [DayItem] = []
     @Binding private var currentMonth: Date
     private let onTaskDropped: (UUID, Date?) -> Void
-    private let routeToDailySchedule: (Date?, [TaskItem]) -> Void
+    private let routeToDailySchedule: (DayItem) -> Void
     
     // MARK: - Initialization
     
@@ -22,7 +22,7 @@ struct MonthView: View {
         month: [DayItem],
         currentMonth: Binding<Date>,
         onTaskDropped: @escaping (UUID, Date?) -> Void,
-        routeToDailySchedule: @escaping (Date?, [TaskItem]) -> Void
+        routeToDailySchedule: @escaping (DayItem) -> Void
     ) {
         self.months = month
         self._currentMonth = currentMonth
@@ -35,7 +35,7 @@ struct MonthView: View {
     var body: some View {
         StackedCards(items: months, currentMonth: $currentMonth, itemHeight: 150) { dayItem in
             DayView(dayItem: dayItem, onTaskDropped: onTaskDropped)
-                .onTapGesture { routeToDailySchedule(dayItem.date, dayItem.tasks ?? []) }
+                .onTapGesture { routeToDailySchedule(dayItem) }
         }
     }
 }

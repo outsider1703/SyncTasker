@@ -62,9 +62,10 @@ struct CalendarView: View {
                     currentMonth: $viewModel.currentMoutn,
                     onTaskDropped: { task, date in
                         viewModel.updateTaskDate(task: task, to: date)
-                    }, routeToDailySchedule: { date, tasks in
-                        viewModel.navigateToDailySchedule(date, tasks)
-                    })
+                    }, routeToDailySchedule: { dayItem in
+                        viewModel.navigateToDailySchedule(dayItem)
+                    }
+                )
             }
             .frame(width: 182)
             

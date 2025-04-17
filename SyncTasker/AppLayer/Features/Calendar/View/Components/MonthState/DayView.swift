@@ -16,8 +16,8 @@ struct DayView: View {
     private var tasks: [TaskItem] = []
     private let onTaskDropped: (UUID, Date?) -> Void
     
-    // MARK: - Initial Private Properties
-
+    // MARK: - Private Properties
+    
     private var isDay: Bool { type == .day }
     
     // MARK: - Initialization

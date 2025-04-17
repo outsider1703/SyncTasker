@@ -17,20 +17,20 @@ import SwiftUI
 struct StackedCards<Content: View>: View {
     
     // MARK: - Initial Private Properties
-
-    private var items: [DayItem]
+    
+    @State private var items: [DayItem]
     @Binding private var currentMonth: Date
     private var itemHeight: CGFloat
     @ViewBuilder private var content: (DayItem) -> Content
     
     // MARK: - Private Properties
-
+    
     private var stackedDisplayCount: Int = 3
     private var opacityDisplayCount: Int = 2
     private var disablesOpacityEffect: Bool = false
     
     // MARK: - Initialization
-
+    
     init(
         items: [DayItem],
         currentMonth: Binding<Date>,
@@ -44,7 +44,7 @@ struct StackedCards<Content: View>: View {
     }
     
     // MARK: - Body
-
+    
     var body: some View {
         ScrollViewReader { scrollProxy in
             ScrollView(.vertical, showsIndicators: false) {
@@ -52,7 +52,6 @@ struct StackedCards<Content: View>: View {
                     ForEach(items) { item in
                         GeometryReader { itemProxy in
                             content(item)
-                                .frame(height: itemHeight)
                                 .visualEffect { content, geometryProxy in
                                     content
                                         .opacity(disablesOpacityEffect ? 1 : calculateOpacity(geometryProxy))
@@ -61,24 +60,14 @@ struct StackedCards<Content: View>: View {
                                 }
                                 .zIndex(-zIndex(item))
                                 .id(item.id)
-                                .onChange(of: itemProxy.frame(in: .scrollView).minY) { oldValue, newValue in
-                                    // Отслеживаем только разделители
-                                    if item.date == nil {
-                                        let isOldVisible = oldValue >= 0 && oldValue <= UIScreen.main.bounds.height
-                                        let isNewVisible = newValue >= 0 && newValue <= UIScreen.main.bounds.height
-                                        
-                                        // Когда разделитель исчезает
-                                        if isOldVisible && !isNewVisible {
-                                            // Если скролл вверх
-                                            if newValue < 0 {
-                                                if let nextDate = getNextDate(for: item, in: items) {
-                                                    self.currentMonth = nextDate
-                                                }
-                                            } else if let prevDate = getPreviousDate(for: item, in: items) {
-                                                // Если скролл вниз
-                                                self.currentMonth = prevDate
-                                            }
+                                .onChange(of: itemProxy.frame(in: .scrollView).minY) { _, newValue in
+                                    guard item.type == .monthSpacing else { return }
+                                    if newValue < 0 {
+                                        if let nextDate = getNextDate(for: item, in: items) {
+                                            self.currentMonth = nextDate
                                         }
+                                    } else if let prevDate = getPreviousDate(for: item, in: items) {
+                                        self.currentMonth = prevDate
                                     }
                                 }
                         }
@@ -99,7 +88,7 @@ struct StackedCards<Content: View>: View {
     }
     
     // MARK: - Private Methods
-
+    
     private nonisolated func calculateOffset(_ proxy: GeometryProxy) -> CGFloat {
         let minY = proxy.frame(in: .scrollView).minY
         guard minY < 0 else { return 0 }

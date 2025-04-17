@@ -28,7 +28,6 @@ class CalendarViewModel: NSObject, ObservableObject {
     @Published var errorMessage: String?
     @Published var selectedFilter: TaskFilterOption = .all
     @Published var calendarViewType: CalendarViewType = .month
-    @Published var selectedDate = Date()
     @Published var currentMoutn = Date()
 
     // MARK: - Computed Properties
@@ -82,13 +81,12 @@ class CalendarViewModel: NSObject, ObservableObject {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
-    func navigateToDailySchedule(_ date: Date?, _ tasks: [TaskItem]) {
-        guard let date else { return }
-        Task { await navigationService.navigate(to: .dailySchedule(date, tasks)) }
+    func navigateToDailySchedule(_ dayitem: DayItem) {
+        Task { await navigationService.navigate(to: .dailySchedule(dayitem)) }
     }
     
     func navigateToFreeTime() {
-        Task { await navigationService.navigate(to: .freeTime) }
+        Task { await navigationService.navigate(to: .freeTime(listDaysInMonth)) }
     }
     
     // MARK: - Public Methods
@@ -197,6 +195,7 @@ class CalendarViewModel: NSObject, ObservableObject {
 // MARK: - NSFetchedResultsControllerDelegate
 
 extension CalendarViewModel: NSFetchedResultsControllerDelegate {
+    
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         loadTasks()
     }

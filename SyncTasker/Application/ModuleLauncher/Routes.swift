@@ -15,15 +15,15 @@ import Foundation
 enum Route: Hashable, Identifiable {
     case calendar
     case taskDetail(TaskItem?)
-    case dailySchedule(Date, [TaskItem])
-    case freeTime
+    case dailySchedule(DayItem)
+    case freeTime([DayItem])
     
     var id: String {
         switch self {
         case .calendar: return "calendar"
         case .taskDetail(_): return "taskDetail"
-        case .dailySchedule(_,_): return "dailySchedule"
-        case .freeTime: return "freeTime"
+        case .dailySchedule(_): return "dailySchedule"
+        case .freeTime(_): return "freeTime"
         }
     }
     

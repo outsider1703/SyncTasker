@@ -13,28 +13,27 @@ class DailyScheduleViewModel: ObservableObject {
     
     private let navigationService: NavigationServiceProtocol
     private let feedbackManager: FeedbackManager
-    private let date: Date
+    private let date: Date?
     private let tasks: [TaskItem]
     
     // MARK: - Properties
     
     @Published var dailyTasks: [CGFloat: [DailyTask]] = [:]
-    @Published var navigationTitle: String = ""
+    @Published var navigationTitle: String
     
     // MARK: - Initialization
     
     init(
         navigationService: NavigationServiceProtocol,
         feedbackManager: FeedbackManager,
-        date: Date,
-        tasks: [TaskItem]
+        dayItem: DayItem
     ) {
         self.navigationService = navigationService
         self.feedbackManager = feedbackManager
-        self.date = date
-        self.tasks = tasks
+        self.date = dayItem.date
+        self.tasks = dayItem.tasks ?? []
         
-        navigationTitle = date.toString()
+        navigationTitle = dayItem.date?.toString() ?? ""
         organizeTasksByHour()
     }
     
