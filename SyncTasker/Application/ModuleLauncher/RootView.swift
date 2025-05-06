@@ -41,8 +41,24 @@ struct RootView: View {
             CalendarView(viewModel: container.makeCalendarViewModel())
         case .dailySchedule(let dayItem):
             DailyScheduleView(viewModel: container.makeDailyScheduleViewModel(dayItem: dayItem))
-        case .freeTime(let listDaysInMonth):
-            FreeTimeView(viewModel: container.makeFreeTimeViewModel(listDaysInMonth: listDaysInMonth))
+        case .freeTime(let daysInYear):
+            FreeTimeView(viewModel: container.makeFreeTimeViewModel(daysInYear: daysInYear))
         }
     }
 }
+//
+//struct RootView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        NavigationStack(path: $navigationService.path) {
+//            CalendarView(viewModel: container.makeCalendarViewModel())
+//                .navigationDestination(for: Route.self) { route in
+//                    if !route.isModal {
+//                        makeView(for: route)
+//                    }
+//                }
+//                .sheet(item: $navigationService.presentedModal) { route in
+//                    makeView(for: route)
+//                }
+//        }
+//    }
+//}

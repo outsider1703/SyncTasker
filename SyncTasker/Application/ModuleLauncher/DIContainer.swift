@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 // DIContainer: создание viewModels
 
@@ -24,9 +25,17 @@ class DIContainer {
     // MARK: - Initialization
     init(
         coreDataService: CoreDataServiceProtocol = CoreDataService.shared,
-        feedbackManager: FeedbackManager = FeedbackManager.shared
+        feedbackManager: FeedbackManager = FeedbackManager.shared,
+        initialRoute: Route? = nil
     ) {
-        self.navigationService = NavigationService()
+        var initialNavPath = NavigationPath()
+        var initialModalRoute: Route? = nil
+        
+        if let route = initialRoute {
+            route.isModal ? initialModalRoute = route : initialNavPath.append(route)
+        }
+
+        self.navigationService = NavigationService(initialPath: initialNavPath, initialModal: initialModalRoute)
         self.coreDataService = coreDataService
         self.feedbackManager = feedbackManager
     }
@@ -56,11 +65,11 @@ class DIContainer {
         )
     }
     
-    func makeFreeTimeViewModel(listDaysInMonth: [DayItem]) -> FreeTimeViewModel {
+    func makeFreeTimeViewModel(daysInYear: [[DayItem]]) -> FreeTimeViewModel {
         return FreeTimeViewModel(
             coreDataService: coreDataService,
             navigationService: navigationService,
-            listDaysInMonth: listDaysInMonth
+            daysInYear: daysInYear
         )
     }
 }

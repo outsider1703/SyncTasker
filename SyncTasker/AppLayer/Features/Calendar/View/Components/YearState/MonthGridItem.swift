@@ -31,21 +31,24 @@ struct MonthGridItem: View {
     // MARK: - Body
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(monthTitle)
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.primary)
             
-            ForEach(0..<6) { week in
-                HStack(spacing: 2) {
-                    ForEach(0..<7) { weekday in
-                        let index = week * 7 + weekday
-                        if index < month.count {
-                            DayCell(dayItem: month[index])
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(0..<6) { week in
+                    HStack(spacing: 2) {
+                        ForEach(0..<7) { day in
+                            let index = week * 7 + day
+                            if index < month.count {
+                                DayCell(dayItem: month[index])
+                            }
                         }
                     }
                 }
             }
+            Spacer()
         }
     }
 }

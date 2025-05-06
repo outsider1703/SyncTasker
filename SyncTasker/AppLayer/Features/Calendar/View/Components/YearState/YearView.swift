@@ -36,7 +36,7 @@ struct YearView: View {
     var body: some View {
         VStack {
             ScrollView {
-                LazyVGrid(columns: monthColumns, spacing: 20) {
+                LazyVGrid(columns: monthColumns, spacing: 0) {
                     ForEach(year, id: \.self) { month in
                         MonthGridItem(month: month)
                             .onTapGesture { onMonthSelected(month) }

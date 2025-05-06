@@ -58,7 +58,7 @@ struct CalendarView: View {
                     .padding(.vertical, 4)
                 
                 MonthView(
-                    month: viewModel.listDaysInMonth,
+                    month: viewModel.daysInMonths,
                     currentMonth: $viewModel.currentMoutn,
                     onTaskDropped: { task, date in
                         viewModel.updateTaskDate(task: task, to: date)
@@ -126,3 +126,11 @@ struct CalendarView: View {
         .padding([.bottom, .horizontal], 32)
     }
 }
+
+#if DEBUG
+struct CalendarView_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

@@ -8,6 +8,7 @@
 import Foundation
 
 extension Array where Element == TaskItem {
+    
     func groupByAppointmentDate() -> (appointmentTasks: [Date: [TaskItem]], backlogTasks: [TaskItem]) {
         let calendar = Calendar.current
         

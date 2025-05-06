@@ -25,7 +25,22 @@ struct FreeTimeView: View {
     
     var body: some View {
         VStack {
-            
+            ScrollView {
+                ForEach(viewModel.daysInYear, id: \.self) { month in
+                    MonthFreeTimeItem(month: month)
+                }
+            }
+            .padding(.horizontal, 16)
         }
     }
 }
+
+#if DEBUG
+struct FreeTimeView_Previews: PreviewProvider {
+    static var previews: some View {
+        let initialRouteForFreeTime = Route.freeTime([[]])
+        let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
+        RootView(container: previewContainer)
+    }
+}
+#endif

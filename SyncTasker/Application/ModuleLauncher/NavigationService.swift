@@ -18,9 +18,14 @@ protocol NavigationServiceProtocol: AnyObject {
 @MainActor
 class NavigationService: ObservableObject, NavigationServiceProtocol {
 
-    @Published var path = NavigationPath()
+    @Published var path: NavigationPath
     @Published var presentedModal: Route?
     
+    init(initialPath: NavigationPath = NavigationPath(), initialModal: Route? = nil) {
+        self.path = initialPath
+        self.presentedModal = initialModal
+    }
+
     func navigate(to route: Route) async {
         if route.isModal {
             presentedModal = route

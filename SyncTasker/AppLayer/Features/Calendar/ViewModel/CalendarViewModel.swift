@@ -19,17 +19,17 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Published Properties
     
-    @Published var daysInYear: [[DayItem]] = []
-    @Published var listDaysInMonth: [DayItem] = []
-    
     @Published var tasks: [TaskItem] = []
+    @Published var daysInYear: [[DayItem]] = []
+    @Published var daysInMonths: [DayItem] = []
+    @Published var errorMessage: String?
+    @Published var calendarViewType: CalendarViewType = .month
+
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
-    @Published var errorMessage: String?
     @Published var selectedFilter: TaskFilterOption = .all
-    @Published var calendarViewType: CalendarViewType = .month
     @Published var currentMoutn = Date()
-
+    
     // MARK: - Computed Properties
     
     var statistics: TaskStatistics { TaskStatistics(tasks: tasks) }
@@ -44,7 +44,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     private var currentYear: [[DayItem]] = [] {
         didSet {
             daysInYear = currentYear.map({ $0.filter({ $0.type == .day || $0.type == .yearSpacing }) })
-            listDaysInMonth = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
+            daysInMonths = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
         }
     }
 
@@ -86,7 +86,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     func navigateToFreeTime() {
-        Task { await navigationService.navigate(to: .freeTime(listDaysInMonth)) }
+        Task { await navigationService.navigate(to: .freeTime(daysInYear)) }
     }
     
     // MARK: - Public Methods

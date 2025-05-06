@@ -13,28 +13,25 @@ class FreeTimeViewModel: ObservableObject {
     
     private let coreDataService: CoreDataServiceProtocol
     private let navigationService: NavigationServiceProtocol
-    private let listDaysInMonth: [DayItem]
 
     // MARK: - Private Properties
     
+    @Published var daysInYear: [[DayItem]]
     
     // MARK: - Initialization
     
     init(
         coreDataService: CoreDataServiceProtocol,
         navigationService: NavigationServiceProtocol,
-        listDaysInMonth: [DayItem]
+        daysInYear: [[DayItem]]
     ) {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
-        self.listDaysInMonth = listDaysInMonth
+        self.daysInYear = daysInYear
     }
     
     // MARK: - Navigation Methods
     
-    func dismiss() async {
-        await navigationService.navigateBack()
-    }
     
     // MARK: - Public Methods
     

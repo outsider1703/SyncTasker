@@ -76,3 +76,13 @@ struct TaskDetailView: View {
         }
     }
 }
+
+#if DEBUG
+struct TaskDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        let initialRouteForFreeTime = Route.taskDetail(nil)
+        let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
+        RootView(container: previewContainer)
+    }
+}
+#endif
