@@ -11,7 +11,7 @@ struct MonthFreeTimeItem: View {
     
     // MARK: - Initial Private Properties
     
-    private let month: [DayItem]
+    private let month: [FreeTimeDay]
     private let columns: [GridItem] = [
         GridItem(.flexible(), spacing: 2),
         GridItem(.flexible(), spacing: 2),
@@ -32,7 +32,7 @@ struct MonthFreeTimeItem: View {
     // MARK: - Initialization
     
     init(
-        month: [DayItem]
+        month: [FreeTimeDay]
     ) {
         self.month = month
     }

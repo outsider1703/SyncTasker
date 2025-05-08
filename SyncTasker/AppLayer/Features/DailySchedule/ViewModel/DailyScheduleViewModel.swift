@@ -48,13 +48,11 @@ class DailyScheduleViewModel: ObservableObject {
     private func organizeTasksByHour() {
         let taskFrameModel = tasks.map { task in
             if let startDate = task.startDate, let endDate = task.endDate {
-                let startHour = Calendar.current.component(.hour, from: startDate) * 60
-                let startMinute = Calendar.current.component(.minute, from: startDate)
-                let endHour = Calendar.current.component(.hour, from: endDate) * 60
-                let endMinute = Calendar.current.component(.minute, from: endDate)
+                let startHour = startDate.inHours(for: 60)
+                let endHour = endDate.inHours(for: 60)
                 
-                let startTime = startHour + startMinute
-                let duration = (endHour + endMinute) - (startHour + startMinute)
+                let startTime = startHour + startDate.inMinuts()
+                let duration = (endHour + endDate.inMinuts()) - (startHour + startDate.inMinuts())
                 
                 return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
             }

@@ -17,4 +17,12 @@ extension Date {
         formatter.dateFormat = format
         return formatter.string(from: self)
     }
+    
+    func inHours(for multiplier: Int = 0) -> Int {
+        return Calendar.current.component(.hour, from: self) * multiplier
+    }
+    
+    func inMinuts() -> Int {
+        Calendar.current.component(.minute, from: self)
+    }
 }

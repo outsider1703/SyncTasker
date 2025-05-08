@@ -25,12 +25,12 @@ struct FreeTimeView: View {
     
     var body: some View {
         VStack {
-            ScrollView {
-                ForEach(viewModel.daysInYear, id: \.self) { month in
+            ScrollView(showsIndicators: false) {
+                ForEach(viewModel.freeTimeDaysInYear, id: \.self) { month in
                     MonthFreeTimeItem(month: month)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 4)
         }
     }
 }
