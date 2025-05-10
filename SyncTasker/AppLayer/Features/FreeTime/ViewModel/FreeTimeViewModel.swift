@@ -16,41 +16,27 @@ class FreeTimeViewModel: ObservableObject {
 
     // MARK: - Private Properties
     
-    @Published var freeTimeDaysInYear: [[FreeTimeDay]] = []
+    @Published var months: [MonthItem] = []
     
     // MARK: - Initialization
     
     init(
         coreDataService: CoreDataServiceProtocol,
         navigationService: NavigationServiceProtocol,
-        daysInYear: [[DayItem]]
+        months: [MonthItem]
     ) {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
-        
-        organizeFreeTime(for: daysInYear)
+        self.months = months
     }
     
     // MARK: - Public Methods
     
+    // MARK: - Navigation Methods
+    
+    func navigateToDailySchedule(_ dayitem: DayItem) {
+        Task { await navigationService.navigate(to: .dailySchedule(dayitem)) }
+    }
     
     // MARK: - Private Methods
-
-    private func organizeFreeTime(for year: [[DayItem]]) {
-        freeTimeDaysInYear = year.map({ month in
-            month.map { day in
-                guard let tasks = day.tasks else {
-                    return FreeTimeDay(id: day.id, type: day.type, date: day.date, freeTimes: [])
-                }
-                
-                let extractedTaskTimes: [(start: String, end: String)] = tasks.compactMap { task in
-                    guard let startDate = task.startDate, let endDate = task.endDate else { return nil }
-                    return (start: startDate.toString(format: "hh:mm"), end: endDate.toString(format: "hh:mm"))
-                }
-                
-                return FreeTimeDay(id: day.id, type: day.type, date: day.date, freeTimes: extractedTaskTimes)
-            }
-        })
-        
-    }
 }

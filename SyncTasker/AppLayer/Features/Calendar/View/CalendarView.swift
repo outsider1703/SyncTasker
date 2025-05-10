@@ -84,8 +84,8 @@ struct CalendarView: View {
     }
     
     private var yearView: some View {
-        YearView(year: viewModel.daysInYear, statistics: viewModel.statistics) { date in
-            viewModel.didTapMonth(with: date)
+        YearView(year: viewModel.currentYear, statistics: viewModel.statistics) { monthItem in
+            viewModel.didTapMonth(with: monthItem)
         }
         .frame(maxWidth: .infinity)
     }

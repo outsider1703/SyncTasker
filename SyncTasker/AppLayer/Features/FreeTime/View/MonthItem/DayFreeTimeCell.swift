@@ -11,12 +11,12 @@ struct DayFreeTimeCell: View {
     
     // MARK: - Initial Private Properties
     
-    private let dayItem: FreeTimeDay
+    private let dayItem: DayItem
     
     // MARK: - Initialization
     
     init(
-        dayItem: FreeTimeDay
+        dayItem: DayItem
     ) {
         self.dayItem = dayItem
     }
@@ -84,7 +84,7 @@ struct DayFreeTimeCell: View {
 #if DEBUG
 struct DayFreeTimeCell_Previews: PreviewProvider {
     static var previews: some View {
-        let initialRouteForFreeTime = Route.freeTime([[]])
+        let initialRouteForFreeTime = Route.freeTime([])
         let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
         RootView(container: previewContainer)
     }

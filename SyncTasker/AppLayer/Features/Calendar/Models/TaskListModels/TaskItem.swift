@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 struct TaskItem: Identifiable, Hashable {
+    
     let id: UUID
     var title: String
     var description: String?
@@ -22,6 +23,39 @@ struct TaskItem: Identifiable, Hashable {
     var startDate: Date?
     var travelTime: Date?
     var isAllDay: Bool
+    
+    init(
+        id: UUID = UUID(),
+        title: String,
+        description: String? = nil,
+        endDate: Date? = nil,
+        isCompleted: Bool = false,
+        priority: Priority = .medium,
+        repetition: Repetition = .none,
+        reminder: Reminder = .none,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date(),
+        startDate: Date? = nil,
+        isAllDay: Bool = false,
+        travelTime: Date? = nil
+    ) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.endDate = endDate
+        self.isCompleted = isCompleted
+        self.priority = priority
+        self.repetition = repetition
+        self.reminder = reminder
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.startDate = startDate
+        self.isAllDay = isAllDay
+        self.travelTime = travelTime
+    }
+}
+
+extension TaskItem {
     
     enum Priority: Int, CaseIterable {
         case low = 0
@@ -74,35 +108,5 @@ struct TaskItem: Identifiable, Hashable {
         case day = "За 1 день"
         case twoDays = "За 2 дня"
         case week = "За 1 неделю"
-    }
-    
-    init(
-        id: UUID = UUID(),
-        title: String,
-        description: String? = nil,
-        endDate: Date? = nil,
-        isCompleted: Bool = false,
-        priority: Priority = .medium,
-        repetition: Repetition = .none,
-        reminder: Reminder = .none,
-        createdAt: Date = Date(),
-        updatedAt: Date = Date(),
-        startDate: Date? = nil,
-        isAllDay: Bool = false,
-        travelTime: Date? = nil
-    ) {
-        self.id = id
-        self.title = title
-        self.description = description
-        self.endDate = endDate
-        self.isCompleted = isCompleted
-        self.priority = priority
-        self.repetition = repetition
-        self.reminder = reminder
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-        self.startDate = startDate
-        self.isAllDay = isAllDay
-        self.travelTime = travelTime
     }
 }

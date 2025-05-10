@@ -25,4 +25,8 @@ extension Date {
     func inMinuts() -> Int {
         Calendar.current.component(.minute, from: self)
     }
+    
+    func isToday() -> Bool {
+        Calendar.current.isDate(self, inSameDayAs: Date())
+    }
 }

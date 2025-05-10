@@ -25,12 +25,21 @@ struct FreeTimeView: View {
     
     var body: some View {
         VStack {
-            ScrollView(showsIndicators: false) {
-                ForEach(viewModel.freeTimeDaysInYear, id: \.self) { month in
-                    MonthFreeTimeItem(month: month)
+            ScrollViewReader { value in
+                ScrollView(showsIndicators: false) {
+                    ForEach(viewModel.months, id: \.self) { month in
+                        MonthFreeTimeItem(month: month) { dayItem in
+                            viewModel.navigateToDailySchedule(dayItem)
+                        }
+                        .id(month.id)
+                    }
+                }
+                .padding(.horizontal, 4)
+                .onAppear() {
+                    let currentMonthId = viewModel.months.first(where: { $0.isCurrentMonth })?.id
+                    value.scrollTo(currentMonthId)
                 }
             }
-            .padding(.horizontal, 4)
         }
     }
 }
@@ -38,7 +47,7 @@ struct FreeTimeView: View {
 #if DEBUG
 struct FreeTimeView_Previews: PreviewProvider {
     static var previews: some View {
-        let initialRouteForFreeTime = Route.freeTime([[]])
+        let initialRouteForFreeTime = Route.freeTime([])
         let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
         RootView(container: previewContainer)
     }

@@ -11,9 +11,9 @@ struct YearView: View {
     
     // MARK: - Initial Private Properties
     
-    @State private var year: [[DayItem]]
+    @State private var year: [MonthItem]
     private let statistics: TaskStatistics
-    private let onMonthSelected: ([DayItem]) -> Void
+    private let onMonthSelected: (MonthItem) -> Void
     
     // MARK: - Private Properties
     
@@ -22,9 +22,9 @@ struct YearView: View {
     // MARK: - Initialization
     
     init(
-        year: [[DayItem]],
+        year: [MonthItem],
         statistics: TaskStatistics,
-        onMonthSelected: @escaping ([DayItem]) -> Void
+        onMonthSelected: @escaping (MonthItem) -> Void
     ) {
         self.year = year
         self.statistics = statistics

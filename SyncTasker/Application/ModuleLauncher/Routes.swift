@@ -16,7 +16,7 @@ enum Route: Hashable, Identifiable {
     case calendar
     case taskDetail(TaskItem?)
     case dailySchedule(DayItem)
-    case freeTime([[DayItem]])
+    case freeTime([MonthItem])
     
     var id: String {
         switch self {

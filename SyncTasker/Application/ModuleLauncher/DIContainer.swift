@@ -65,11 +65,11 @@ class DIContainer {
         )
     }
     
-    func makeFreeTimeViewModel(daysInYear: [[DayItem]]) -> FreeTimeViewModel {
+    func makeFreeTimeViewModel(months: [MonthItem]) -> FreeTimeViewModel {
         return FreeTimeViewModel(
             coreDataService: coreDataService,
             navigationService: navigationService,
-            daysInYear: daysInYear
+            months: months
         )
     }
 }

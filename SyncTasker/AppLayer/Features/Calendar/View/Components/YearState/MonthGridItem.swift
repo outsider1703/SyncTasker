@@ -11,21 +11,21 @@ struct MonthGridItem: View {
     
     // MARK: - Initial Private Properties
 
-    private let month: [DayItem]
+    private let days: [DayItem]
     
     // MARK: - Computed Properties
     
     private var monthTitle: String {
-        let firstDay = month.first(where: { $0.type == .day })?.date
+        let firstDay = days.first(where: { $0.type == .day })?.date
         return firstDay?.toString(format: "MMMM") ?? ""
     }
     
     // MARK: - Initialization
     
     init(
-        month: [DayItem]
+        month: MonthItem
     ) {
-        self.month = month
+        self.days = month.dayItems
     }
     
     // MARK: - Body
@@ -41,8 +41,8 @@ struct MonthGridItem: View {
                     HStack(spacing: 2) {
                         ForEach(0..<7) { day in
                             let index = week * 7 + day
-                            if index < month.count {
-                                DayCell(dayItem: month[index])
+                            if index < days.count {
+                                DayCell(dayItem: days[index])
                             }
                         }
                     }

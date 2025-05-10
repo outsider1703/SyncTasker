@@ -42,7 +42,7 @@ struct RootView: View {
         case .dailySchedule(let dayItem):
             DailyScheduleView(viewModel: container.makeDailyScheduleViewModel(dayItem: dayItem))
         case .freeTime(let daysInYear):
-            FreeTimeView(viewModel: container.makeFreeTimeViewModel(daysInYear: daysInYear))
+            FreeTimeView(viewModel: container.makeFreeTimeViewModel(months: daysInYear))
         }
     }
 }

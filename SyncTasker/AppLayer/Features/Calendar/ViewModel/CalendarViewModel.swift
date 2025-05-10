@@ -20,7 +20,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Published Properties
     
     @Published var tasks: [TaskItem] = []
-    @Published var daysInYear: [[DayItem]] = []
+    @Published var currentYear: [MonthItem] = []
     @Published var daysInMonths: [DayItem] = []
     @Published var errorMessage: String?
     @Published var calendarViewType: CalendarViewType = .month
@@ -41,12 +41,12 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Private Properties
     
     private let calendar = Calendar.current
-    private var currentYear: [[DayItem]] = [] {
-        didSet {
-            daysInYear = currentYear.map({ $0.filter({ $0.type == .day || $0.type == .yearSpacing }) })
-            daysInMonths = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
-        }
-    }
+//    private var currentYear: [MonthItem] = [] {
+//        didSet {
+//            daysInYear = currentYear.map({ $0.filter({ $0.type == .day || $0.type == .yearSpacing }) })
+//            daysInMonths = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
+//        }
+//    }
 
     // MARK: - Initialization
     
@@ -86,7 +86,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     func navigateToFreeTime() {
-        Task { await navigationService.navigate(to: .freeTime(daysInYear)) }
+        Task { await navigationService.navigate(to: .freeTime(currentYear)) }
     }
     
     // MARK: - Public Methods
@@ -107,9 +107,9 @@ class CalendarViewModel: NSObject, ObservableObject {
         calendarViewType = .year
     }
     
-    func didTapMonth(with month: [DayItem]) {
+    func didTapMonth(with month: MonthItem) {
         calendarViewType = .month
-        guard let firstDayFromSelectedMonth = month.first(where: { $0.type == .day })?.date else { return }
+        guard let firstDayFromSelectedMonth = month.dayItems.first(where: { $0.type == .day })?.date else { return }
         let isCurrentMonth = calendar.dateComponents([.month], from: firstDayFromSelectedMonth) == calendar.dateComponents([.month], from: Date())
         currentMoutn = isCurrentMonth ? Date() : firstDayFromSelectedMonth
     }
@@ -119,11 +119,12 @@ class CalendarViewModel: NSObject, ObservableObject {
     private func getMonthsInYear() {
         let interval = calendar.dateInterval(of: .year, for: Date())!
         var startDate = interval.start
-        var months: [[DayItem]] = []
+        var months: [MonthItem] = []
         
         while startDate < interval.end {
             let daysInMonth = generateDaysForMonth(startDate)
-            months.append(daysInMonth)
+            let month = MonthItem(id: UUID(), dayItems: daysInMonth)
+            months.append(month)
             startDate = calendar.date(byAdding: .month, value: 1, to: startDate)!
         }
         
