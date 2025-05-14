@@ -35,7 +35,7 @@ struct FreeTimeView: View {
                     }
                 }
                 .padding(.horizontal, 4)
-                .onAppear() {
+                .onFirstAppear {
                     let currentMonthId = viewModel.months.first(where: { $0.isCurrentMonth })?.id
                     value.scrollTo(currentMonthId)
                 }

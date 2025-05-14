@@ -12,20 +12,15 @@ struct MonthGridItem: View {
     // MARK: - Initial Private Properties
 
     private let days: [DayItem]
-    
-    // MARK: - Computed Properties
-    
-    private var monthTitle: String {
-        let firstDay = days.first(where: { $0.type == .day })?.date
-        return firstDay?.toString(format: "MMMM") ?? ""
-    }
-    
+    private let monthTitle: String
+        
     // MARK: - Initialization
     
     init(
         month: MonthItem
     ) {
         self.days = month.dayItems
+        self.monthTitle = month.title
     }
     
     // MARK: - Body

@@ -12,27 +12,13 @@ struct MonthFreeTimeItem: View {
     // MARK: - Initial Private Properties
     
     private let days: [DayItem]
+    private let monthTitle: String
     private let routeToDailySchedule: (DayItem) -> Void
 
     // MARK: - Private Properties
     
-    private let columns: [GridItem] = [
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 2),
-        GridItem(.flexible(), spacing: 0)
-    ]
-
-    // MARK: - Computed Properties
-    
-    private var monthTitle: String {
-        let firstDay = days.first(where: { $0.type == .day })?.date
-        return firstDay?.toString(format: "MMMM") ?? ""
-    }
-    
+    private let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 2), count: 7)
+        
     // MARK: - Initialization
     
     init(
@@ -40,6 +26,7 @@ struct MonthFreeTimeItem: View {
         routeToDailySchedule: @escaping (DayItem) -> Void
     ) {
         self.days = month.dayItems
+        self.monthTitle = month.title
         self.routeToDailySchedule = routeToDailySchedule
     }
     

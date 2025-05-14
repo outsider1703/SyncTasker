@@ -25,7 +25,7 @@ struct DayFreeTimeCell: View {
     
     var body: some View {
         if let date = dayItem.date {
-            //            let isCurrentDate = Calendar.current.isDate(date, inSameDayAs: Date())
+            //let isCurrentDate = Calendar.current.isDate(date, inSameDayAs: Date())
             ZStack {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(.clear)
@@ -41,10 +41,9 @@ struct DayFreeTimeCell: View {
                             ZStack {
                                 RoundedRectangle(cornerRadius: 2)
                                     .fill(.green)
-                                HStack(spacing: 0) {
+                                HStack(alignment: .center, spacing: 0) {
                                     timeFromater(start)
                                     timeFromater(end)
-                                    Spacer()
                                 }
                             }
                         }

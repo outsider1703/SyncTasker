@@ -77,7 +77,7 @@ struct DailyScheduleView: View {
 #if DEBUG
 struct DailyScheduleView_Previews: PreviewProvider {
     static var previews: some View {
-        let initialRouteForFreeTime = Route.dailySchedule(DayItem(id: UUID(), type: .day))
+        let initialRouteForFreeTime = Route.dailySchedule(DayItem(id: UUID()))
         let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
         RootView(container: previewContainer)
     }

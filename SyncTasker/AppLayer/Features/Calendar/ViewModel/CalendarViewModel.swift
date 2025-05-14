@@ -109,7 +109,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     func didTapMonth(with month: MonthItem) {
         calendarViewType = .month
-        guard let firstDayFromSelectedMonth = month.dayItems.first(where: { $0.type == .day })?.date else { return }
+        guard let firstDayFromSelectedMonth = month.dayItems.first(where: { $0.date != nil })?.date else { return }
         let isCurrentMonth = calendar.dateComponents([.month], from: firstDayFromSelectedMonth) == calendar.dateComponents([.month], from: Date())
         currentMoutn = isCurrentMonth ? Date() : firstDayFromSelectedMonth
     }
@@ -140,15 +140,15 @@ class CalendarViewModel: NSObject, ObservableObject {
         
         // Создаются пустые дни ( отступы ) в начале месяца для отображения экрана года
         let firstWeekday = (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7 + 1
-        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID(), type: .yearSpacing)) }
+        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID())) }
         
         // Создается пустой день перед началом месяца для отображения в списке дней
-        days.append(DayItem(id: UUID(), type: .monthSpacing, date: month))
+        days.append(DayItem(id: UUID(), date: month))
         
         // Добавляем обычны дни со списком задач для каждого дня
         for day in daysRange {
             if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
-                days.append(DayItem(id: UUID(), type: .day, date: date, tasks: appointmentTasks[date]))
+                days.append(DayItem(id: UUID(), date: date, tasks: appointmentTasks[date]))
             }
         }
         

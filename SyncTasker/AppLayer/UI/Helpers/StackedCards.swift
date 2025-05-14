@@ -61,7 +61,7 @@ struct StackedCards<Content: View>: View {
                                 .zIndex(-zIndex(item))
                                 .id(item.id)
                                 .onChange(of: itemProxy.frame(in: .scrollView).minY) { _, newValue in
-                                    guard item.type == .monthSpacing else { return }
+                                    guard item.date != nil else { return }
                                     if newValue < 0 {
                                         if let nextDate = getNextDate(for: item, in: items) {
                                             self.currentMonth = nextDate
