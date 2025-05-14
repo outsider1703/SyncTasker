@@ -20,15 +20,15 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Published Properties
     
     @Published var tasks: [TaskItem] = []
-    @Published var currentYear: [MonthItem] = []
-    @Published var daysInMonths: [DayItem] = []
+    @Published var monthsInYear: [MonthItem] = []
+    @Published var weeksInYear: [WeekItem] = []
     @Published var errorMessage: String?
     @Published var calendarViewType: CalendarViewType = .month
 
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
     @Published var selectedFilter: TaskFilterOption = .all
-    @Published var currentMoutn = Date()
+    @Published var currentMonth = Date()
     
     // MARK: - Computed Properties
     
@@ -41,12 +41,6 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Private Properties
     
     private let calendar = Calendar.current
-//    private var currentYear: [MonthItem] = [] {
-//        didSet {
-//            daysInYear = currentYear.map({ $0.filter({ $0.type == .day || $0.type == .yearSpacing }) })
-//            daysInMonths = currentYear.flatMap({ $0 }).filter({ $0.type == .day || $0.type == .monthSpacing })
-//        }
-//    }
 
     // MARK: - Initialization
     
@@ -86,7 +80,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     func navigateToFreeTime() {
-        Task { await navigationService.navigate(to: .freeTime(currentYear)) }
+        Task { await navigationService.navigate(to: .freeTime(monthsInYear)) }
     }
     
     // MARK: - Public Methods
@@ -111,50 +105,11 @@ class CalendarViewModel: NSObject, ObservableObject {
         calendarViewType = .month
         guard let firstDayFromSelectedMonth = month.dayItems.first(where: { $0.date != nil })?.date else { return }
         let isCurrentMonth = calendar.dateComponents([.month], from: firstDayFromSelectedMonth) == calendar.dateComponents([.month], from: Date())
-        currentMoutn = isCurrentMonth ? Date() : firstDayFromSelectedMonth
+        currentMonth = isCurrentMonth ? Date() : firstDayFromSelectedMonth
     }
     
     // MARK: - Private Methods
     
-    private func getMonthsInYear() {
-        let interval = calendar.dateInterval(of: .year, for: Date())!
-        var startDate = interval.start
-        var months: [MonthItem] = []
-        
-        while startDate < interval.end {
-            let daysInMonth = generateDaysForMonth(startDate)
-            let month = MonthItem(id: UUID(), dayItems: daysInMonth)
-            months.append(month)
-            startDate = calendar.date(byAdding: .month, value: 1, to: startDate)!
-        }
-        
-        currentYear = months
-    }
-    
-    private func generateDaysForMonth(_ month: Date) -> [DayItem] {
-        guard let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: month)),
-              let daysRange = calendar.range(of: .day, in: .month, for: firstDayOfMonth)
-        else { return [] }
-        
-        var days: [DayItem] = []
-        
-        // Создаются пустые дни ( отступы ) в начале месяца для отображения экрана года
-        let firstWeekday = (calendar.component(.weekday, from: firstDayOfMonth) + 5) % 7 + 1
-        for _ in 1..<firstWeekday { days.append(DayItem(id: UUID())) }
-        
-        // Создается пустой день перед началом месяца для отображения в списке дней
-        days.append(DayItem(id: UUID(), date: month))
-        
-        // Добавляем обычны дни со списком задач для каждого дня
-        for day in daysRange {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfMonth) {
-                days.append(DayItem(id: UUID(), date: date, tasks: appointmentTasks[date]))
-            }
-        }
-        
-        return days
-    }
-
     private func loadTasks() {
         do {
             try fetchController.performFetch()
@@ -163,10 +118,75 @@ class CalendarViewModel: NSObject, ObservableObject {
             
             appointmentTasks = groupedTasks.appointmentTasks
             backlogTasks = groupedTasks.backlogTasks
-            getMonthsInYear()
+            setupCalendarData(for: Date())
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    private func setupCalendarData(for dateInYear: Date) {
+        guard let yearInterval = calendar.dateInterval(of: .year, for: dateInYear) else {
+            self.monthsInYear = []
+            self.weeksInYear = []
+            return
+        }
+
+        var localMonths: [MonthItem] = []
+        var localWeeks: [WeekItem] = []
+
+        var currentDayItemsForMonthDisplay: [DayItem] = []
+        var currentDayItemsForWeek: [DayItem] = []
+
+        var currentDate = yearInterval.start
+        var currentMonthComponent = calendar.component(.month, from: currentDate)
+
+        let firstSystemWeekday = calendar.firstWeekday
+        let lastSystemWeekday = (firstSystemWeekday + 5) % 7 + 1
+
+        let firstWeekdayOfInitialMonth = calendar.component(.weekday, from: currentDate)
+        var leadingPaddingCount = (firstWeekdayOfInitialMonth - firstSystemWeekday + 7) % 7
+        for _ in 0..<leadingPaddingCount {
+            currentDayItemsForMonthDisplay.append(DayItem(id: UUID()))
+        }
+        
+        while currentDate <= yearInterval.end {
+            let dayStart = calendar.startOfDay(for: currentDate)
+            let actualDayItem = DayItem(id: UUID(), date: dayStart, tasks: appointmentTasks[dayStart])
+
+            // --- Month Processing ---
+            let monthOfCurrentDate = calendar.component(.month, from: currentDate)
+            if monthOfCurrentDate != currentMonthComponent {
+                if !currentDayItemsForMonthDisplay.isEmpty {
+                     localMonths.append(MonthItem(id: UUID(), dayItems: currentDayItemsForMonthDisplay))
+                }
+                currentDayItemsForMonthDisplay = []
+                currentMonthComponent = monthOfCurrentDate
+
+                let firstWeekdayOfThisNewMonth = calendar.component(.weekday, from: currentDate)
+                leadingPaddingCount = (firstWeekdayOfThisNewMonth - firstSystemWeekday + 7) % 7
+                for _ in 0..<leadingPaddingCount {
+                    currentDayItemsForMonthDisplay.append(DayItem(id: UUID()))
+                }
+            }
+            currentDayItemsForMonthDisplay.append(actualDayItem)
+
+            // --- Week Processing ---
+            currentDayItemsForWeek.append(actualDayItem)
+            
+            let weekdayOfCurrentDate = calendar.component(.weekday, from: currentDate)
+            if weekdayOfCurrentDate == lastSystemWeekday || currentDate == yearInterval.end {
+                if !currentDayItemsForWeek.isEmpty {
+                    localWeeks.append(WeekItem(id: UUID(), dayItems: currentDayItemsForWeek))
+                    currentDayItemsForWeek = []
+                }
+            }
+            
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
+            currentDate = nextDay
+        }
+        
+        self.monthsInYear = localMonths
+        self.weeksInYear = localWeeks
     }
     
     private func update(for taskId: UUID, and date: Date?) {

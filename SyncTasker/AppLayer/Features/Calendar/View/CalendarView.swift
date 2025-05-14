@@ -17,7 +17,7 @@ struct CalendarView: View {
     
     private var calendarTitle: String {
         let format = viewModel.calendarViewType == .month ? "MMMM yyyy" : "yyyy"
-        return viewModel.currentMoutn.toString(format: format)
+        return viewModel.currentMonth.toString(format: format)
     }
     
     // MARK: - Initialization
@@ -37,7 +37,6 @@ struct CalendarView: View {
                 }
             }
             
-            gradientOverlay
             floatingButtons
         }
         .ignoresSafeArea(edges: .bottom)
@@ -46,62 +45,49 @@ struct CalendarView: View {
     // MARK: - Subviews
     
     private var monthView: some View {
-        HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(calendarTitle)
-                    .font(Theme.Typography.headlineFont)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .onTapGesture { viewModel.didTapYearLabel() }
-                    .padding(.leading, 16)
-                
-                Divider()
-                    .padding(.vertical, 4)
-                
-                MonthView(
-                    month: viewModel.daysInMonths,
-                    currentMonth: $viewModel.currentMoutn,
-                    onTaskDropped: { task, date in
-                        viewModel.updateTaskDate(task: task, to: date)
-                    }, routeToDailySchedule: { dayItem in
-                        viewModel.navigateToDailySchedule(dayItem)
-                    }
-                )
-            }
-            .frame(width: 182)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(calendarTitle)
+                .font(Theme.Typography.headlineFont)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .onTapGesture { viewModel.didTapYearLabel() }
+                .padding(.leading, 16)
             
-            TaskListView(
-                selectedFilter: $viewModel.selectedFilter,
-                errorMessage: $viewModel.errorMessage,
-                taskSections: viewModel.taskSections,
-                navigateToTaskDetail: { task in
-                    viewModel.navigateToTaskDetail(task)
-                },
-                backlogDropped: { taskId in
-                    viewModel.updateTaskDate(task: taskId, to: nil)
+            Divider()
+                .padding(.vertical, 4)
+            
+            WeekView(
+                currentMonth: $viewModel.currentMonth,
+                weeks: viewModel.weeksInYear,
+                onTaskDropped: { task, date in
+                    viewModel.updateTaskDate(task: task, to: date)
+                }, routeToDailySchedule: { dayItem in
+                    viewModel.navigateToDailySchedule(dayItem)
                 }
             )
+            
+            Spacer().frame(height: 88)
         }
+        
+        //            TaskListView(
+        //                selectedFilter: $viewModel.selectedFilter,
+        //                errorMessage: $viewModel.errorMessage,
+        //                taskSections: viewModel.taskSections,
+        //                navigateToTaskDetail: { task in
+        //                    viewModel.navigateToTaskDetail(task)
+        //                },
+        //                backlogDropped: { taskId in
+        //                    viewModel.updateTaskDate(task: taskId, to: nil)
+        //                }
+        //            )
     }
     
     private var yearView: some View {
-        YearView(year: viewModel.currentYear, statistics: viewModel.statistics) { monthItem in
+        YearView(year: viewModel.monthsInYear, statistics: viewModel.statistics) { monthItem in
             viewModel.didTapMonth(with: monthItem)
         }
         .frame(maxWidth: .infinity)
     }
-    
-    private var gradientOverlay: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                gradient: Gradient(colors: [.white.opacity(0), .white.opacity(0.8), .white]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 150)
-        }
-        .frame(maxWidth: .infinity)
-    }
-    
+        
     private var floatingButtons: some View {
         HStack {
             Button(action: { viewModel.navigateToFreeTime() }) {

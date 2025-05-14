@@ -50,7 +50,6 @@ struct DayView: View {
                     .padding(.horizontal, 8)
                 }
             }
-            .frame(width: 150, height: 150)
             .background(
                 RoundedRectangle(cornerRadius: 8)
             )
