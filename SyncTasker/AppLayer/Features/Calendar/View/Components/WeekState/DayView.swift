@@ -11,29 +11,27 @@ struct DayView: View {
     
     // MARK: - Initial Private Properties
     
-    private let date: Date?
-    private var tasks: [TaskItem] = []
+    private let dayItem: DayItem
     private let onTaskDropped: (UUID, Date?) -> Void
-    
-    // MARK: - Private Properties
-    
+    private let onDayDetail: (DayItem) -> Void
     
     // MARK: - Initialization
     
     init(
-        dayItem: DayItem?,
-        onTaskDropped: @escaping (UUID, Date?) -> Void
+        dayItem: DayItem,
+        onTaskDropped: @escaping (UUID, Date?) -> Void,
+        onDayDetail: @escaping (DayItem) -> Void
     ) {
-        self.date = dayItem?.date
-        self.tasks = dayItem?.tasks ?? []
+        self.dayItem = dayItem
         self.onTaskDropped = onTaskDropped
+        self.onDayDetail = onDayDetail
     }
     
     // MARK: - Body
     
     var body: some View {
         VStack {
-            if let dateTitle = date?.toString(format: "d MM YY") {
+            if let dateTitle = dayItem.date?.toString(format: "d MM YY") {
                 Text(dateTitle)
                     .font(Theme.Typography.bodyFont)
                     .padding(8)
@@ -42,7 +40,7 @@ struct DayView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(tasks) { task in
+                    ForEach(dayItem.tasks ?? []) { task in
                         TaskRowView(task: task)
                     }
                 }
@@ -51,9 +49,10 @@ struct DayView: View {
         }
         .frame(maxWidth: .infinity)
         .border(.black, width: 1)
+        .onTapGesture { onDayDetail(dayItem) }
         .dropDestination(for: String.self) { items, _ in
             guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
-            onTaskDropped(taskId, date)
+            onTaskDropped(taskId, dayItem.date)
             return true
         }
     }

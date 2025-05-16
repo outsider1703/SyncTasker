@@ -23,8 +23,10 @@ class CalendarViewModel: NSObject, ObservableObject {
     @Published var monthsInYear: [MonthItem] = []
     @Published var weeksInYear: [WeekItem] = []
     @Published var weekIndex: Int = 0
+    @Published var isBacklogOpen: Bool = false
     @Published var errorMessage: String?
     @Published var calendarViewType: CalendarViewType = .month
+    
     
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
@@ -72,7 +74,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Navigation Methods
     
-    func navigateToTaskDetail(_ task: TaskItem?) {
+    func navigateToTaskDetail(_ task: TaskItem? = nil) {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     

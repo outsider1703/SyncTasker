@@ -12,7 +12,11 @@ struct CalendarView: View {
     // MARK: - ViewModel
     
     @StateObject private var viewModel: CalendarViewModel
-
+    
+    // MARK: - Private Properties
+    
+    @State private var isBacklogOpen: Bool = false
+    
     // MARK: - Initialization
     
     init(viewModel: CalendarViewModel) {
@@ -27,59 +31,33 @@ struct CalendarView: View {
             case .month:
                 WeekView(
                     weekIndex: viewModel.weekIndex,
+                    isBacklogOpen: $viewModel.isBacklogOpen,
                     weeks: viewModel.weeksInYear,
-                    onTaskDropped: { task, date in
-                        viewModel.updateTaskDate(task: task, to: date)
-                    }, routeToDailySchedule: { dayItem in
-                        viewModel.navigateToDailySchedule(dayItem)
-                    }
+                    onTaskDropped: { viewModel.updateTaskDate(task: $0, to: $1) },
+                    routeToDailySchedule: { viewModel.navigateToDailySchedule($0) },
+                    routeToFreeTimes: { viewModel.navigateToFreeTime() },
+                    routeToTaskDetails: { viewModel.navigateToTaskDetail() }
                 )
-
+                
             case .year:
-                YearView(year: viewModel.monthsInYear, statistics: viewModel.statistics) { monthItem in
-                    viewModel.didTapMonth(with: monthItem)
-                }
+                YearView(
+                    year: viewModel.monthsInYear,
+                    statistics: viewModel.statistics) { viewModel.didTapMonth(with: $0) }
             }
-//            Spacer().frame(height: 300)
-//            floatingButtons
+            
+            if viewModel.isBacklogOpen {
+                TaskListView(
+                    selectedFilter: $viewModel.selectedFilter,
+                    errorMessage: $viewModel.errorMessage,
+                    taskSections: viewModel.taskSections,
+                    navigateToTaskDetail: { viewModel.navigateToTaskDetail($0) },
+                    backlogDropped: { viewModel.updateTaskDate(task: $0, to: nil) }
+                )
+            }
         }
     }
     
     // MARK: - Subviews
-            
-    private var floatingButtons: some View {
-        HStack {
-            Button(action: { viewModel.navigateToFreeTime() }) {
-                Text("Free Time")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding(.all, 8)
-                    .background(Theme.Colors.accent)
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
-            }
-            Button(action: {  }) {
-                Text("Backlog")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding(.all, 8)
-                    .background(Theme.Colors.accent)
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
-            }
-            Spacer()
-            Button(action: { viewModel.navigateToTaskDetail(nil) }) {
-                Image(systemName: "plus")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .frame(width: 56, height: 56)
-                    .background(Circle().fill(Theme.Colors.accent))
-                    .shadow(radius: 4)
-            }
-        }
-        .padding(.horizontal, 32)
-        .padding(.bottom, 16)
-    }
 }
 
 #if DEBUG
