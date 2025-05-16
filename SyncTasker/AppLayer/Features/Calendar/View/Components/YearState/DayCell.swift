@@ -38,3 +38,10 @@ struct DayCell: View {
     }
 }
 
+#if DEBUG
+struct DayCell_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

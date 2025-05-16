@@ -32,30 +32,25 @@ struct DayView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack(alignment: .top) {
-                if let dateTitle = date?.toString(format: "dd") {
-                    Text(dateTitle)
-                        .font(Theme.Typography.bodyFont)
-                        .padding(8)
-                }
-                Spacer()
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        ForEach(tasks) { task in
-                            TaskRowView(task: task)
-                        }
-                    }
-                    .padding(.horizontal, 8)
-                }
+        VStack {
+            if let dateTitle = date?.toString(format: "d MM YY") {
+                Text(dateTitle)
+                    .font(Theme.Typography.bodyFont)
+                    .padding(8)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-            )
-            .shadow(color: Color.black.opacity(0.2), radius: 5, x: 0, y: 2)
+            Spacer()
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(tasks) { task in
+                        TaskRowView(task: task)
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
         }
-        .foregroundColor(.black)
+        .frame(maxWidth: .infinity)
+        .border(.black, width: 1)
         .dropDestination(for: String.self) { items, _ in
             guard let taskId = UUID(uuidString: items.first ?? "") else { return false }
             onTaskDropped(taskId, date)
@@ -63,3 +58,11 @@ struct DayView: View {
         }
     }
 }
+
+#if DEBUG
+struct DayView_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

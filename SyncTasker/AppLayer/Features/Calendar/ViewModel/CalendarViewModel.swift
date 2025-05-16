@@ -22,13 +22,13 @@ class CalendarViewModel: NSObject, ObservableObject {
     @Published var tasks: [TaskItem] = []
     @Published var monthsInYear: [MonthItem] = []
     @Published var weeksInYear: [WeekItem] = []
+    @Published var weekIndex: Int = 0
     @Published var errorMessage: String?
     @Published var calendarViewType: CalendarViewType = .month
-
+    
     @Published var appointmentTasks: [Date: [TaskItem]] = [:]
     @Published var backlogTasks: [TaskItem] = []
     @Published var selectedFilter: TaskFilterOption = .all
-    @Published var currentMonth = Date()
     
     // MARK: - Computed Properties
     
@@ -41,7 +41,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Private Properties
     
     private let calendar = Calendar.current
-
+    
     // MARK: - Initialization
     
     init(
@@ -67,6 +67,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         
         self.fetchController.delegate = self
         self.loadTasks()
+        self.setupWeekIndex(for: monthsInYear.first(where: { $0.isCurrentMonth }))
     }
     
     // MARK: - Navigation Methods
@@ -84,7 +85,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     // MARK: - Public Methods
-        
+    
     func updateTaskDate(task: UUID, to date: Date?) {
         update(for: task, and: date)
     }
@@ -103,9 +104,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     func didTapMonth(with month: MonthItem) {
         calendarViewType = .month
-        guard let firstDayFromSelectedMonth = month.dayItems.first(where: { $0.date != nil })?.date else { return }
-        let isCurrentMonth = calendar.dateComponents([.month], from: firstDayFromSelectedMonth) == calendar.dateComponents([.month], from: Date())
-        currentMonth = isCurrentMonth ? Date() : firstDayFromSelectedMonth
+        setupWeekIndex(for: month)
     }
     
     // MARK: - Private Methods
@@ -125,70 +124,122 @@ class CalendarViewModel: NSObject, ObservableObject {
     }
     
     private func setupCalendarData(for dateInYear: Date) {
-        guard let yearInterval = calendar.dateInterval(of: .year, for: dateInYear) else {
+        let yearComponent = calendar.component(.year, from: dateInYear)
+        guard
+            let firstDayOfThisYear = calendar.date(from: DateComponents(year: yearComponent, month: 1, day: 1)),
+            let firstDayOfNextYear = calendar.date(from: DateComponents(year: yearComponent + 1, month: 1, day: 1)),
+            let lastDayOfThisYear = calendar.date(byAdding: .day, value: -1, to: firstDayOfNextYear)
+        else {
             self.monthsInYear = []
             self.weeksInYear = []
             return
         }
 
-        var localMonths: [MonthItem] = []
-        var localWeeks: [WeekItem] = []
-
-        var currentDayItemsForMonthDisplay: [DayItem] = []
-        var currentDayItemsForWeek: [DayItem] = []
-
-        var currentDate = yearInterval.start
-        var currentMonthComponent = calendar.component(.month, from: currentDate)
-
-        let firstSystemWeekday = calendar.firstWeekday
-        let lastSystemWeekday = (firstSystemWeekday + 5) % 7 + 1
-
-        let firstWeekdayOfInitialMonth = calendar.component(.weekday, from: currentDate)
-        var leadingPaddingCount = (firstWeekdayOfInitialMonth - firstSystemWeekday + 7) % 7
-        for _ in 0..<leadingPaddingCount {
-            currentDayItemsForMonthDisplay.append(DayItem(id: UUID()))
-        }
+        let allActualDayItems = generateActualDayItems(from: firstDayOfThisYear, to: lastDayOfThisYear)
         
-        while currentDate <= yearInterval.end {
+        self.monthsInYear = generateMonthsInYear(from: allActualDayItems)
+        self.weeksInYear = generateWeeksInYear(from: allActualDayItems, firstDayOfYear: firstDayOfThisYear)
+    }
+
+    private func generateActualDayItems(from startDate: Date, to endDate: Date) -> [DayItem] {
+        var actualDayItems: [DayItem] = []
+        var currentDate = startDate
+        
+        while currentDate <= endDate {
             let dayStart = calendar.startOfDay(for: currentDate)
-            let actualDayItem = DayItem(id: UUID(), date: dayStart, tasks: appointmentTasks[dayStart])
-
-            // --- Month Processing ---
-            let monthOfCurrentDate = calendar.component(.month, from: currentDate)
-            if monthOfCurrentDate != currentMonthComponent {
-                if !currentDayItemsForMonthDisplay.isEmpty {
-                     localMonths.append(MonthItem(id: UUID(), dayItems: currentDayItemsForMonthDisplay))
-                }
-                currentDayItemsForMonthDisplay = []
-                currentMonthComponent = monthOfCurrentDate
-
-                let firstWeekdayOfThisNewMonth = calendar.component(.weekday, from: currentDate)
-                leadingPaddingCount = (firstWeekdayOfThisNewMonth - firstSystemWeekday + 7) % 7
-                for _ in 0..<leadingPaddingCount {
-                    currentDayItemsForMonthDisplay.append(DayItem(id: UUID()))
-                }
-            }
-            currentDayItemsForMonthDisplay.append(actualDayItem)
-
-            // --- Week Processing ---
-            currentDayItemsForWeek.append(actualDayItem)
-            
-            let weekdayOfCurrentDate = calendar.component(.weekday, from: currentDate)
-            if weekdayOfCurrentDate == lastSystemWeekday || currentDate == yearInterval.end {
-                if !currentDayItemsForWeek.isEmpty {
-                    localWeeks.append(WeekItem(id: UUID(), dayItems: currentDayItemsForWeek))
-                    currentDayItemsForWeek = []
-                }
-            }
-            
+            actualDayItems.append(DayItem(id: UUID(), date: dayStart, tasks: appointmentTasks[dayStart]))
             guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
             currentDate = nextDay
         }
-        
-        self.monthsInYear = localMonths
-        self.weeksInYear = localWeeks
+        return actualDayItems
+    }
+
+    private func generateMonthsInYear(from actualDayItems: [DayItem]) -> [MonthItem] {
+        var localMonths: [MonthItem] = []
+        guard !actualDayItems.isEmpty, let firstDateInItems = actualDayItems.first?.date else { return [] }
+
+        var currentDayItemsForMonth: [DayItem] = []
+        var currentMonthComponent = calendar.component(.month, from: firstDateInItems)
+        let firstSystemWeekday = calendar.firstWeekday
+
+        let firstWeekdayOfInitialMonth = calendar.component(.weekday, from: firstDateInItems)
+        var leadingPadding = (firstWeekdayOfInitialMonth - firstSystemWeekday + 7) % 7
+        addEmptyDayItems(count: leadingPadding, to: &currentDayItemsForMonth)
+
+        for dayItem in actualDayItems {
+            guard let dayItemDate = dayItem.date else { continue }
+            let monthOfCurrentDate = calendar.component(.month, from: dayItemDate)
+
+            if monthOfCurrentDate != currentMonthComponent {
+                if !currentDayItemsForMonth.isEmpty {
+                    localMonths.append(MonthItem(id: UUID(), dayItems: currentDayItemsForMonth))
+                }
+                currentDayItemsForMonth = []
+                currentMonthComponent = monthOfCurrentDate
+
+                let firstWeekdayOfThisNewMonth = calendar.component(.weekday, from: dayItemDate)
+                leadingPadding = (firstWeekdayOfThisNewMonth - firstSystemWeekday + 7) % 7
+                addEmptyDayItems(count: leadingPadding, to: &currentDayItemsForMonth)
+            }
+            currentDayItemsForMonth.append(dayItem)
+        }
+
+        if !currentDayItemsForMonth.isEmpty {
+            let trailingPaddingMonth = (7 - (currentDayItemsForMonth.count % 7)) % 7
+            addEmptyDayItems(count: trailingPaddingMonth, to: &currentDayItemsForMonth)
+            localMonths.append(MonthItem(id: UUID(), dayItems: currentDayItemsForMonth))
+        }
+        return localMonths
+    }
+
+    private func generateWeeksInYear(from actualDayItems: [DayItem], firstDayOfYear: Date) -> [WeekItem] {
+        var localWeeks: [WeekItem] = []
+        guard !actualDayItems.isEmpty else { return [] }
+
+        var currentDayItemsForWeek: [DayItem] = []
+        let firstSystemWeekday = calendar.firstWeekday
+        let lastSystemWeekday = (firstSystemWeekday + 5) % 7 + 1
+
+        let firstWeekdayOfYear = calendar.component(.weekday, from: firstDayOfYear)
+        let leadingPaddingWeek = (firstWeekdayOfYear - firstSystemWeekday + 7) % 7
+        addEmptyDayItems(count: leadingPaddingWeek, to: &currentDayItemsForWeek)
+
+        for dayItem in actualDayItems {
+            guard let dayItemDate = dayItem.date else { continue }
+            currentDayItemsForWeek.append(dayItem)
+
+            let weekdayOfCurrentDate = calendar.component(.weekday, from: dayItemDate)
+            if weekdayOfCurrentDate == lastSystemWeekday {
+                if currentDayItemsForWeek.count == 7 {
+                    localWeeks.append(WeekItem(id: UUID(), dayItems: currentDayItemsForWeek))
+                    currentDayItemsForWeek = []
+                } else if !currentDayItemsForWeek.isEmpty {
+                    let trailingPadding = (7 - (currentDayItemsForWeek.count % 7)) % 7
+                    addEmptyDayItems(count: trailingPadding, to: &currentDayItemsForWeek)
+                    if currentDayItemsForWeek.count == 7 {
+                         localWeeks.append(WeekItem(id: UUID(), dayItems: currentDayItemsForWeek))
+                    }
+                    currentDayItemsForWeek = []
+                }
+            }
+        }
+
+        if !currentDayItemsForWeek.isEmpty {
+            let trailingPaddingWeek = (7 - (currentDayItemsForWeek.count % 7)) % 7
+            addEmptyDayItems(count: trailingPaddingWeek, to: &currentDayItemsForWeek)
+            if currentDayItemsForWeek.count == 7 {
+                localWeeks.append(WeekItem(id: UUID(), dayItems: currentDayItemsForWeek))
+            }
+        }
+        return localWeeks
     }
     
+    private func addEmptyDayItems(count: Int, to collection: inout [DayItem]) {
+        for _ in 0..<count {
+            collection.append(DayItem(id: UUID()))
+        }
+    }
+
     private func update(for taskId: UUID, and date: Date?) {
         guard let task = tasks.first(where: { $0.id == taskId }) else { return }
         let updatedTask = TaskItem(
@@ -210,6 +261,17 @@ class CalendarViewModel: NSObject, ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    private func setupWeekIndex(for month: MonthItem?) {
+        guard let month else { return }
+        weekIndex = weeksInYear.firstIndex(where: { weekItem in
+            weekItem.dayItems.contains(where: { dayItem in
+                guard let date = dayItem.date else { return false }
+                let isCurrentMonth = calendar.isDate(month.dayItems.firstDate, equalTo: Date(), toGranularity: .month)
+                return isCurrentMonth ? calendar.isDateInToday(date) : date == month.dayItems.firstDate
+            })
+        }) ?? 0
     }
 }
 

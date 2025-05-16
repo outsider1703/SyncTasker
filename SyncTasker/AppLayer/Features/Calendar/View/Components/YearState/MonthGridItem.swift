@@ -47,3 +47,11 @@ struct MonthGridItem: View {
         }
     }
 }
+
+#if DEBUG
+struct MonthGridItem_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

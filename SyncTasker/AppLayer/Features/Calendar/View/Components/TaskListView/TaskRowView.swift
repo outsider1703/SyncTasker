@@ -43,3 +43,11 @@ struct TaskRowView: View {
         }
     }
 }
+
+#if DEBUG
+struct TaskRowView_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

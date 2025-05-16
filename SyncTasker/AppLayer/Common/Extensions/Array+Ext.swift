@@ -7,6 +7,13 @@
 
 import Foundation
 
+extension Array where Element == DayItem {
+    
+    var firstDate: Date {
+        self.first(where: { $0.date != nil })?.date ?? Date()
+    }
+}
+
 extension Array where Element == TaskItem {
     
     func groupByAppointmentDate() -> (appointmentTasks: [Date: [TaskItem]], backlogTasks: [TaskItem]) {

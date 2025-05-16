@@ -50,3 +50,11 @@ struct YearView: View {
         }
     }
 }
+
+#if DEBUG
+struct YearView_Previews: PreviewProvider {
+    static var previews: some View {
+        RootView(container: DIContainer.shared)
+    }
+}
+#endif

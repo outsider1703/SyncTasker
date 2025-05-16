@@ -12,14 +12,7 @@ struct CalendarView: View {
     // MARK: - ViewModel
     
     @StateObject private var viewModel: CalendarViewModel
-    
-    // MARK: - Computed Properties
-    
-    private var calendarTitle: String {
-        let format = viewModel.calendarViewType == .month ? "MMMM yyyy" : "yyyy"
-        return viewModel.currentMonth.toString(format: format)
-    }
-    
+
     // MARK: - Initialization
     
     init(viewModel: CalendarViewModel) {
@@ -29,69 +22,44 @@ struct CalendarView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch viewModel.calendarViewType {
-                case .month: monthView
-                case .year: yearView
+        VStack {
+            switch viewModel.calendarViewType {
+            case .month:
+                WeekView(
+                    weekIndex: viewModel.weekIndex,
+                    weeks: viewModel.weeksInYear,
+                    onTaskDropped: { task, date in
+                        viewModel.updateTaskDate(task: task, to: date)
+                    }, routeToDailySchedule: { dayItem in
+                        viewModel.navigateToDailySchedule(dayItem)
+                    }
+                )
+
+            case .year:
+                YearView(year: viewModel.monthsInYear, statistics: viewModel.statistics) { monthItem in
+                    viewModel.didTapMonth(with: monthItem)
                 }
             }
-            
-            floatingButtons
+//            Spacer().frame(height: 300)
+//            floatingButtons
         }
-        .ignoresSafeArea(edges: .bottom)
     }
     
     // MARK: - Subviews
-    
-    private var monthView: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(calendarTitle)
-                .font(Theme.Typography.headlineFont)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onTapGesture { viewModel.didTapYearLabel() }
-                .padding(.leading, 16)
             
-            Divider()
-                .padding(.vertical, 4)
-            
-            WeekView(
-                currentMonth: $viewModel.currentMonth,
-                weeks: viewModel.weeksInYear,
-                onTaskDropped: { task, date in
-                    viewModel.updateTaskDate(task: task, to: date)
-                }, routeToDailySchedule: { dayItem in
-                    viewModel.navigateToDailySchedule(dayItem)
-                }
-            )
-            
-            Spacer().frame(height: 88)
-        }
-        
-        //            TaskListView(
-        //                selectedFilter: $viewModel.selectedFilter,
-        //                errorMessage: $viewModel.errorMessage,
-        //                taskSections: viewModel.taskSections,
-        //                navigateToTaskDetail: { task in
-        //                    viewModel.navigateToTaskDetail(task)
-        //                },
-        //                backlogDropped: { taskId in
-        //                    viewModel.updateTaskDate(task: taskId, to: nil)
-        //                }
-        //            )
-    }
-    
-    private var yearView: some View {
-        YearView(year: viewModel.monthsInYear, statistics: viewModel.statistics) { monthItem in
-            viewModel.didTapMonth(with: monthItem)
-        }
-        .frame(maxWidth: .infinity)
-    }
-        
     private var floatingButtons: some View {
         HStack {
             Button(action: { viewModel.navigateToFreeTime() }) {
                 Text("Free Time")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                    .padding(.all, 8)
+                    .background(Theme.Colors.accent)
+                    .cornerRadius(12)
+                    .shadow(radius: 4)
+            }
+            Button(action: {  }) {
+                Text("Backlog")
                     .font(.title2)
                     .foregroundColor(.white)
                     .padding(.all, 8)
@@ -109,7 +77,8 @@ struct CalendarView: View {
                     .shadow(radius: 4)
             }
         }
-        .padding([.bottom, .horizontal], 32)
+        .padding(.horizontal, 32)
+        .padding(.bottom, 16)
     }
 }
 

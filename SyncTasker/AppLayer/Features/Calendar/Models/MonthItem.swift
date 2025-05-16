@@ -19,8 +19,7 @@ struct MonthItem: Identifiable, Hashable {
     // MARK: - Computed Properties
 
     var title: String {
-        let firstDay = dayItems.first(where: { $0.date != nil })?.date
-        return firstDay?.toString(format: "MMMM") ?? ""
+        dayItems.firstDate.toString(format: "MMMM")
     }
 
     var isCurrentMonth: Bool {
