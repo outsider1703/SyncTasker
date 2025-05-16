@@ -16,17 +16,17 @@ struct DayItem: Identifiable, Hashable {
     // Дата
     let date: Date?
     // Список задач
-    let tasks: [TaskItem]?
+    let tasks: [TaskItem]
+    // Время сна
+    let sleepTime: ClosedRange<Date>
     
     // MARK: - Computed Properties
     
     // Список начала и конца промежутков свободного времени
     var freeTimes: [(start: String, end: String)]? {
-        guard let allTasks = tasks else { return nil }
-        
         // 1. Фильтруем задачи: нужны только те, у которых есть startDate и endDate, и startDate < endDate.
         //    Сразу сортируем валидные задачи по времени начала.
-        let sortedValidTasks = allTasks.compactMap { task -> (start: Date, end: Date)? in
+        let sortedValidTasks = tasks.compactMap { task -> (start: Date, end: Date)? in
             guard let startDate = task.startDate, let endDate = task.endDate, startDate < endDate else { return nil }
             return (start: startDate, end: endDate)
         }.sorted { $0.start < $1.start }
@@ -77,10 +77,22 @@ struct DayItem: Identifiable, Hashable {
     init(
         id: UUID,
         date: Date? = nil,
-        tasks: [TaskItem]? = nil
+        tasks: [TaskItem] = [],
+        sleepTime: ClosedRange<Date>? = nil
     ) {
         self.id = id
         self.date = date
         self.tasks = tasks
+        
+        if let providedSleepTime = sleepTime {
+            self.sleepTime = providedSleepTime
+        } else if let existingDate = date {
+            let calendar = Calendar.current
+            let startOfSleep = calendar.date(bySettingHour: 7, minute: 0, second: 0, of: existingDate) ?? existingDate
+            let endOfSleep = calendar.date(bySettingHour: 22, minute: 0, second: 0, of: existingDate) ?? existingDate
+            self.sleepTime = startOfSleep...endOfSleep
+        } else {
+            self.sleepTime = Date()...Date()
+        }
     }
 }

@@ -149,7 +149,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         
         while currentDate <= endDate {
             let dayStart = calendar.startOfDay(for: currentDate)
-            actualDayItems.append(DayItem(id: UUID(), date: dayStart, tasks: appointmentTasks[dayStart]))
+            actualDayItems.append(DayItem(id: UUID(), date: dayStart, tasks: appointmentTasks[dayStart] ?? []))
             guard let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
             currentDate = nextDay
         }

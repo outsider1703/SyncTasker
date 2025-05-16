@@ -13,6 +13,7 @@ struct WeekView: View {
     
     @State private var weekIndex: Int
     @Binding private var isBacklogOpen: Bool
+    @Binding private var calendarViewType: CalendarViewType
     private let weeks: [WeekItem]
     private let onTaskDropped: (UUID, Date?) -> Void
     private let routeToDailySchedule: (DayItem) -> Void
@@ -24,6 +25,7 @@ struct WeekView: View {
     init(
         weekIndex: Int,
         isBacklogOpen: Binding<Bool>,
+        calendarViewType: Binding<CalendarViewType>,
         weeks: [WeekItem],
         onTaskDropped: @escaping (UUID, Date?) -> Void,
         routeToDailySchedule: @escaping (DayItem) -> Void,
@@ -32,6 +34,7 @@ struct WeekView: View {
     ) {
         self._weekIndex = State(initialValue: weekIndex)
         self._isBacklogOpen = isBacklogOpen
+        self._calendarViewType = calendarViewType
         self.weeks = weeks
         self.onTaskDropped = onTaskDropped
         self.routeToDailySchedule = routeToDailySchedule
@@ -73,14 +76,28 @@ struct WeekView: View {
             
     private var floatingButtons: some View {
         VStack {
-            Button(action: routeToFreeTimes) {
-                Text("Free Time")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                    .padding(.all, 4)
-                    .background(Theme.Colors.accent)
-                    .cornerRadius(12)
-                    .shadow(radius: 4)
+            HStack {
+                Button(action: routeToFreeTimes) {
+                    Text("Free Time")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(.all, 4)
+                        .background(Theme.Colors.accent)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
+                }
+                Button(action: {
+                    isBacklogOpen = false
+                    calendarViewType = .year
+                }) {
+                    Text("Year")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                        .padding(.all, 4)
+                        .background(Theme.Colors.accent)
+                        .cornerRadius(12)
+                        .shadow(radius: 4)
+                }
             }
             HStack {
                 Button(action: { isBacklogOpen.toggle() }) {

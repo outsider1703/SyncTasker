@@ -13,8 +13,7 @@ class DailyScheduleViewModel: ObservableObject {
     
     private let navigationService: NavigationServiceProtocol
     private let feedbackManager: FeedbackManager
-    private let date: Date?
-    private let tasks: [TaskItem]
+    private let dayItem: DayItem
     
     // MARK: - Properties
     
@@ -30,8 +29,7 @@ class DailyScheduleViewModel: ObservableObject {
     ) {
         self.navigationService = navigationService
         self.feedbackManager = feedbackManager
-        self.date = dayItem.date
-        self.tasks = dayItem.tasks ?? []
+        self.dayItem = dayItem
         
         navigationTitle = dayItem.date?.toString() ?? ""
         organizeTasksByHour()
@@ -42,22 +40,32 @@ class DailyScheduleViewModel: ObservableObject {
     func navigateToTaskDetail(_ task: TaskItem?) {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
-
+    
     // MARK: - Private Methods
     
-    private func organizeTasksByHour() {
-        let taskFrameModel = tasks.map { task in
-            if let startDate = task.startDate, let endDate = task.endDate {
-                let startHour = startDate.inHours(for: 60)
-                let endHour = endDate.inHours(for: 60)
-                
-                let startTime = startHour + startDate.inMinuts()
-                let duration = (endHour + endDate.inMinuts()) - (startHour + startDate.inMinuts())
-                
-                return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
+    private func organizeTasksByHour() {        
+        var taskFrameModel = dayItem.tasks.map { task in
+            guard let startDate = task.startDate, let endDate = task.endDate else {
+                return DailyTask(task: task, offset: 0, height: 0)
             }
-            return DailyTask(task: task, offset: 0, height: 0)
+            
+            let startTime = startDate.inHours(for: 60) + startDate.inMinuts()
+            let endTime = endDate.inHours(for: 60) + endDate.inMinuts()
+            let duration = endTime - startTime
+            
+            return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
         }
+        
+        let wakeUpTime = dayItem.sleepTime.lowerBound.inHours(for: 60) + dayItem.sleepTime.lowerBound.inMinuts()
+        taskFrameModel.append(
+            DailyTask(task: TaskItem(title: "Morning sleep"), offset: 0.1, height: CGFloat(wakeUpTime))
+        )
+        
+        let fallAsleepTime = dayItem.sleepTime.upperBound.inHours(for: 60) + dayItem.sleepTime.upperBound.inMinuts()
+        taskFrameModel.append(
+            DailyTask(task: TaskItem(title: "Evening sleep"), offset: CGFloat(fallAsleepTime), height: CGFloat(1439 - fallAsleepTime))
+        )
+
         dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }
     }
 }

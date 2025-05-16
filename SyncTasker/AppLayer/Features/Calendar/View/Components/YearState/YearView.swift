@@ -35,18 +35,16 @@ struct YearView: View {
     
     var body: some View {
         VStack {
-            ScrollView {
-                LazyVGrid(columns: monthColumns, spacing: 0) {
-                    ForEach(year, id: \.self) { month in
-                        MonthGridItem(month: month)
-                            .onTapGesture { onMonthSelected(month) }
-                    }
+            LazyVGrid(columns: monthColumns, spacing: 0) {
+                ForEach(year, id: \.self) { month in
+                    MonthGridItem(month: month)
+                        .onTapGesture { onMonthSelected(month) }
                 }
-                .padding(.horizontal, 16)
-                
-                TaskStatisticsView(statistics: statistics)
-                    .padding(.horizontal, 16)
             }
+            .padding(.horizontal, 16)
+            
+            TaskStatisticsView(statistics: statistics)
+                .padding(.horizontal, 16)
         }
     }
 }

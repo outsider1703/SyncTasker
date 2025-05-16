@@ -13,10 +13,6 @@ struct CalendarView: View {
     
     @StateObject private var viewModel: CalendarViewModel
     
-    // MARK: - Private Properties
-    
-    @State private var isBacklogOpen: Bool = false
-    
     // MARK: - Initialization
     
     init(viewModel: CalendarViewModel) {
@@ -32,6 +28,7 @@ struct CalendarView: View {
                 WeekView(
                     weekIndex: viewModel.weekIndex,
                     isBacklogOpen: $viewModel.isBacklogOpen,
+                    calendarViewType: $viewModel.calendarViewType,
                     weeks: viewModel.weeksInYear,
                     onTaskDropped: { viewModel.updateTaskDate(task: $0, to: $1) },
                     routeToDailySchedule: { viewModel.navigateToDailySchedule($0) },
@@ -42,7 +39,9 @@ struct CalendarView: View {
             case .year:
                 YearView(
                     year: viewModel.monthsInYear,
-                    statistics: viewModel.statistics) { viewModel.didTapMonth(with: $0) }
+                    statistics: viewModel.statistics,
+                    onMonthSelected: { viewModel.didTapMonth(with: $0) }
+                )
             }
             
             if viewModel.isBacklogOpen {
