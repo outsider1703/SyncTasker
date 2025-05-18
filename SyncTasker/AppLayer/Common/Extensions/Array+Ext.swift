@@ -36,3 +36,41 @@ extension Array where Element == TaskItem {
         return (appointmentTasks: groupedAppointmentTasks, backlogTasks: withoutAppointment)
     }
 }
+
+extension Array where Element == Date {
+    
+    /// Разбивает дату по номеру месяца в данной Calendar
+    func chunkedByMonth(calendar: Calendar) -> [[Date]] {
+        Dictionary(grouping: self) { calendar.component(.month, from: $0) }
+            .sorted(by: { $0.key < $1.key })
+            .map { $0.value }
+    }
+    
+    /// Добавляет отступы пустых дней так, чтобы итоговая длина была кратна 7.
+    func padded(toMultipleOf targetSize: Int, calendar: Calendar) -> [Date?] {
+        var result: [Date?] = []
+        // вычисляем leading padding
+        if let ref = first {
+            let weekday = calendar.component(.weekday, from: ref)
+            let leading = (weekday - calendar.firstWeekday + 7) % 7
+            for _ in 0..<leading { result.append(nil) }
+        }
+        // вставляем сами даты
+        result += map { Optional($0) }
+        // вычисляем trailing padding
+        let trailing = (targetSize - (result.count % targetSize)) % targetSize
+        for _ in 0..<trailing { result.append(nil) }
+        return result
+    }
+}
+
+extension Array {
+    
+    /// Разбивает по фиксированному размеру
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            let min = Swift.min($0 + size, count)
+            return Array(self[$0..<min])
+        }
+    }
+}
