@@ -1,5 +1,5 @@
 //
-//  DailyScheduleTaskView.swift
+//  DailyTaskView.swift
 //  SyncTasker
 //
 //  Created by ingvar on 04.04.2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct DailyScheduleTaskView: View {
+struct DailyTaskView: View {
     
     // MARK: - Initial Private Properties
 

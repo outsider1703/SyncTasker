@@ -26,10 +26,6 @@ class CalendarViewModel: NSObject, ObservableObject {
     @Published var isBacklogOpen: Bool = false
     @Published var errorMessage: String?
     @Published var calendarViewType: CalendarViewType = .month
-    
-    
-    @Published var appointmentTasks: [Date: [TaskItem]] = [:]
-    @Published var backlogTasks: [TaskItem] = []
     @Published var selectedFilter: TaskFilterOption = .all
     
     // MARK: - Computed Properties
@@ -43,7 +39,9 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Private Properties
     
     private let calendar = Calendar.current
-    
+    private var dailyTasks: [Date?: [TaskItem]] = [:]
+    private var backlogTasks: [TaskItem] = []
+
     // MARK: - Initialization
     
     init(
@@ -78,8 +76,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
-    func navigateToDailySchedule(_ dayitem: DayItem) {
-        Task { await navigationService.navigate(to: .dailySchedule(dayitem)) }
+    func navigateToDaily(_ dayitem: DayItem) {
+        Task { await navigationService.navigate(to: .daily(dayitem)) }
     }
     
     func navigateToFreeTime() {
@@ -115,9 +113,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         do {
             try fetchController.performFetch()
             tasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
-            let groupedTasks = tasks.groupByAppointmentDate()
-            
-            appointmentTasks = groupedTasks.appointmentTasks
+            let groupedTasks = tasks.groupByDailyTasks()
+            dailyTasks = groupedTasks.dailyTasks
             backlogTasks = groupedTasks.backlogTasks
             setupCalendarData(for: Date())
         } catch {
@@ -136,7 +133,7 @@ class CalendarViewModel: NSObject, ObservableObject {
             .chunkedByMonth(calendar: calendar)
             .map { month in
                 let monthPadded = month.padded(toMultipleOf: 7, calendar: calendar)
-                let items = monthPadded.map { DayItem(id: UUID(), date: $0, tasks: $0.map { appointmentTasks[$0] ?? [] } ?? []) }
+                let items = monthPadded.map { DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0] ?? []) }
                 return MonthItem(id: UUID(), dayItems: items)
             }
         
@@ -147,7 +144,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         weeksInYear = weekPadded
             .chunked(into: 7)
             .map { weekDates in
-                let items = weekDates.map { DayItem(id: UUID(), date: $0, tasks: $0.map { appointmentTasks[$0] ?? [] } ?? []) }
+                let items = weekDates.map { DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0] ?? []) }
                 return WeekItem(id: UUID(), dayItems: items)
             }
     }

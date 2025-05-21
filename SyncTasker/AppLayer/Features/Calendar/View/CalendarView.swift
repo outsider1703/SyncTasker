@@ -31,7 +31,7 @@ struct CalendarView: View {
                     calendarViewType: $viewModel.calendarViewType,
                     weeks: viewModel.weeksInYear,
                     onTaskDropped: { viewModel.updateTaskDate(task: $0, to: $1) },
-                    routeToDailySchedule: { viewModel.navigateToDailySchedule($0) },
+                    routeToDaily: { viewModel.navigateToDaily($0) },
                     routeToFreeTimes: { viewModel.navigateToFreeTime() },
                     routeToTaskDetails: { viewModel.navigateToTaskDetail() }
                 )

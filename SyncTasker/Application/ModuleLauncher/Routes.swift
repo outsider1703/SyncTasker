@@ -15,21 +15,21 @@ import Foundation
 enum Route: Hashable, Identifiable {
     case calendar
     case taskDetail(TaskItem?)
-    case dailySchedule(DayItem)
+    case daily(DayItem)
     case freeTime([MonthItem])
     
     var id: String {
         switch self {
         case .calendar: return "calendar"
         case .taskDetail(_): return "taskDetail"
-        case .dailySchedule(_): return "dailySchedule"
+        case .daily(_): return "daily"
         case .freeTime(_): return "freeTime"
         }
     }
     
     var isModal: Bool {
         switch self {
-        case .calendar, .dailySchedule, .freeTime: return false
+        case .calendar, .daily, .freeTime: return false
         case .taskDetail: return true
         }
     }

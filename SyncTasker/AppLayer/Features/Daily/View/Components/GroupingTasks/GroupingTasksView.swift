@@ -35,7 +35,7 @@ struct GroupingTasksView: View {
             if let tasks = dailyTasks[offset] {
                 HStack(spacing: 4) {
                     ForEach(tasks, id: \.task.id) { dailyTask in
-                        DailyScheduleTaskView(dailyTask: dailyTask)
+                        DailyTaskView(dailyTask: dailyTask)
                             .onTapGesture { onTaskTap(dailyTask.task) }
                     }
                 }

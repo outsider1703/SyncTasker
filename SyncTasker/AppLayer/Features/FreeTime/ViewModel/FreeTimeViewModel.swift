@@ -34,8 +34,8 @@ class FreeTimeViewModel: ObservableObject {
     
     // MARK: - Navigation Methods
     
-    func navigateToDailySchedule(_ dayitem: DayItem) {
-        Task { await navigationService.navigate(to: .dailySchedule(dayitem)) }
+    func navigateToDaily(_ dayitem: DayItem) {
+        Task { await navigationService.navigate(to: .daily(dayitem)) }
     }
     
     // MARK: - Private Methods

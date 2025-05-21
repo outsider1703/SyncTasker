@@ -1,5 +1,5 @@
 //
-//  DailyScheduleView.swift
+//  DailyView.swift
 //  SyncTasker
 //
 //  Created by ingvar on 25.02.2025.
@@ -14,16 +14,16 @@ private enum Constants {
     static let timeColumnWidth: CGFloat = 24
 }
 
-struct DailyScheduleView: View {
+struct DailyView: View {
     
     // MARK: - ViewModel
     
-    @StateObject private var viewModel: DailyScheduleViewModel
+    @StateObject private var viewModel: DailyViewModel
     
     // MARK: - Initialization
     
     init(
-        viewModel: DailyScheduleViewModel
+        viewModel: DailyViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -75,9 +75,9 @@ struct DailyScheduleView: View {
 }
 
 #if DEBUG
-struct DailyScheduleView_Previews: PreviewProvider {
+struct DailyView_Previews: PreviewProvider {
     static var previews: some View {
-        let initialRouteForFreeTime = Route.dailySchedule(DayItem(id: UUID()))
+        let initialRouteForFreeTime = Route.daily(DayItem(id: UUID()))
         let previewContainer = DIContainer(initialRoute: initialRouteForFreeTime)
         RootView(container: previewContainer)
     }

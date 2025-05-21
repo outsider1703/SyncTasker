@@ -13,7 +13,7 @@ struct MonthFreeTimeItem: View {
     
     private let days: [DayItem]
     private let monthTitle: String
-    private let routeToDailySchedule: (DayItem) -> Void
+    private let routeToDaily: (DayItem) -> Void
 
     // MARK: - Private Properties
     
@@ -23,11 +23,11 @@ struct MonthFreeTimeItem: View {
     
     init(
         month: MonthItem,
-        routeToDailySchedule: @escaping (DayItem) -> Void
+        routeToDaily: @escaping (DayItem) -> Void
     ) {
         self.days = month.dayItems
         self.monthTitle = month.title
-        self.routeToDailySchedule = routeToDailySchedule
+        self.routeToDaily = routeToDaily
     }
     
     // MARK: - Body
@@ -41,7 +41,7 @@ struct MonthFreeTimeItem: View {
             LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(days, id: \.self) { dayItem in
                     DayFreeTimeCell(dayItem: dayItem)
-                        .onTapGesture { routeToDailySchedule(dayItem) }
+                        .onTapGesture { routeToDaily(dayItem) }
                 }
             }
         }

@@ -16,7 +16,7 @@ struct WeekView: View {
     @Binding private var calendarViewType: CalendarViewType
     private let weeks: [WeekItem]
     private let onTaskDropped: (UUID, Date?) -> Void
-    private let routeToDailySchedule: (DayItem) -> Void
+    private let routeToDaily: (DayItem) -> Void
     private let routeToFreeTimes: () -> Void
     private let routeToTaskDetails: () -> Void
     
@@ -28,7 +28,7 @@ struct WeekView: View {
         calendarViewType: Binding<CalendarViewType>,
         weeks: [WeekItem],
         onTaskDropped: @escaping (UUID, Date?) -> Void,
-        routeToDailySchedule: @escaping (DayItem) -> Void,
+        routeToDaily: @escaping (DayItem) -> Void,
         routeToFreeTimes: @escaping () -> Void,
         routeToTaskDetails: @escaping () -> Void
     ) {
@@ -37,7 +37,7 @@ struct WeekView: View {
         self._calendarViewType = calendarViewType
         self.weeks = weeks
         self.onTaskDropped = onTaskDropped
-        self.routeToDailySchedule = routeToDailySchedule
+        self.routeToDaily = routeToDaily
         self.routeToFreeTimes = routeToFreeTimes
         self.routeToTaskDetails = routeToTaskDetails
     }
@@ -50,19 +50,19 @@ struct WeekView: View {
                 Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                     let week = weeks[index]
                     GridRow {
-                        DayView(dayItem: week.dayItems[0], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // ПН
-                        DayView(dayItem: week.dayItems[1], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // ВТ
+                        DayView(dayItem: week.dayItems[0], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // ПН
+                        DayView(dayItem: week.dayItems[1], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // ВТ
                     }
                     GridRow {
-                        DayView(dayItem: week.dayItems[2], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // СР
-                        DayView(dayItem: week.dayItems[3], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // ЧТ
+                        DayView(dayItem: week.dayItems[2], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // СР
+                        DayView(dayItem: week.dayItems[3], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // ЧТ
                     }
                     GridRow {
-                        DayView(dayItem: week.dayItems[4], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // ПТ
-                        DayView(dayItem: week.dayItems[5], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // СБ
+                        DayView(dayItem: week.dayItems[4], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // ПТ
+                        DayView(dayItem: week.dayItems[5], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // СБ
                     }
                     GridRow {
-                        DayView(dayItem: week.dayItems[6], onTaskDropped: onTaskDropped, onDayDetail: routeToDailySchedule) // ВС
+                        DayView(dayItem: week.dayItems[6], onTaskDropped: onTaskDropped, onDayDetail: routeToDaily) // ВС
                         floatingButtons
                     }
                 }

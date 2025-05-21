@@ -29,7 +29,7 @@ struct FreeTimeView: View {
                 ScrollView(showsIndicators: false) {
                     ForEach(viewModel.months, id: \.self) { month in
                         MonthFreeTimeItem(month: month) { dayItem in
-                            viewModel.navigateToDailySchedule(dayItem)
+                            viewModel.navigateToDaily(dayItem)
                         }
                         .id(month.id)
                     }

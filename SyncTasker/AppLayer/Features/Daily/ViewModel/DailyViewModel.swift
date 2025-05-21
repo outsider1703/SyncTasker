@@ -1,5 +1,5 @@
 //
-//  DailyScheduleViewModel.swift
+//  DailyViewModel.swift
 //  SyncTasker
 //
 //  Created by ingvar on 25.02.2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-class DailyScheduleViewModel: ObservableObject {
+class DailyViewModel: ObservableObject {
     
     // MARK: - Injections
     
@@ -58,12 +58,16 @@ class DailyScheduleViewModel: ObservableObject {
         
         let wakeUpTime = dayItem.sleepTime.lowerBound.inHours(for: 60) + dayItem.sleepTime.lowerBound.inMinuts()
         taskFrameModel.append(
-            DailyTask(task: TaskItem(title: "Morning sleep"), offset: 0.1, height: CGFloat(wakeUpTime))
+            DailyTask(task: TaskItem(title: "Morning sleep"),
+                      offset: 0.1,
+                      height: CGFloat(wakeUpTime))
         )
         
         let fallAsleepTime = dayItem.sleepTime.upperBound.inHours(for: 60) + dayItem.sleepTime.upperBound.inMinuts()
         taskFrameModel.append(
-            DailyTask(task: TaskItem(title: "Evening sleep"), offset: CGFloat(fallAsleepTime), height: CGFloat(1439 - fallAsleepTime))
+            DailyTask(task: TaskItem(title: "Evening sleep"),
+                      offset: CGFloat(fallAsleepTime),
+                      height: CGFloat(1440 - fallAsleepTime))
         )
 
         dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }

@@ -57,8 +57,8 @@ class DIContainer {
         )
     }
     
-    func makeDailyScheduleViewModel(dayItem: DayItem) -> DailyScheduleViewModel {
-        return DailyScheduleViewModel(
+    func makeDailyViewModel(dayItem: DayItem) -> DailyViewModel {
+        return DailyViewModel(
             navigationService: navigationService,
             feedbackManager: feedbackManager,
             dayItem: dayItem
