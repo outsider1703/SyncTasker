@@ -44,7 +44,7 @@ class DailyViewModel: ObservableObject {
     // MARK: - Private Methods
     
     private func organizeTasksByHour() {        
-        var taskFrameModel = dayItem.tasks.map { task in
+        let taskFrameModel = dayItem.tasks.map { task in
             guard let startDate = task.startDate, let endDate = task.endDate else {
                 return DailyTask(task: task, offset: 0, height: 0)
             }
@@ -55,20 +55,6 @@ class DailyViewModel: ObservableObject {
             
             return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
         }
-        
-        let wakeUpTime = dayItem.sleepTime.lowerBound.inHours(for: 60) + dayItem.sleepTime.lowerBound.inMinuts()
-        taskFrameModel.append(
-            DailyTask(task: TaskItem(title: "Morning sleep"),
-                      offset: 0.1,
-                      height: CGFloat(wakeUpTime))
-        )
-        
-        let fallAsleepTime = dayItem.sleepTime.upperBound.inHours(for: 60) + dayItem.sleepTime.upperBound.inMinuts()
-        taskFrameModel.append(
-            DailyTask(task: TaskItem(title: "Evening sleep"),
-                      offset: CGFloat(fallAsleepTime),
-                      height: CGFloat(1440 - fallAsleepTime))
-        )
 
         dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }
     }

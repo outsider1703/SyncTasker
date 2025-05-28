@@ -41,7 +41,7 @@ class CalendarViewModel: NSObject, ObservableObject {
     private let calendar = Calendar.current
     private var dailyTasks: [Date?: [TaskItem]] = [:]
     private var backlogTasks: [TaskItem] = []
-
+    
     // MARK: - Initialization
     
     init(
@@ -116,35 +116,51 @@ class CalendarViewModel: NSObject, ObservableObject {
             let groupedTasks = tasks.groupByDailyTasks()
             dailyTasks = groupedTasks.dailyTasks
             backlogTasks = groupedTasks.backlogTasks
-            setupCalendarData(for: Date())
+            
+            setupCalendarData(for: Date(), using: SleepInstruction(
+                weekdayPeriod: SleepPeriod(startHour: 6, startMinute: 30, endHour: 21, endMinute: 00) ,
+                weekendPeriod: SleepPeriod(startHour: 10, startMinute: 00, endHour: 23, endMinute: 30) ,
+                specialDates: [Date().toKey() : SleepPeriod(startHour: 12, startMinute: 00, endHour: 19, endMinute: 00) ])
+            )
+            
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
-    private func setupCalendarData(for dateInYear: Date) {
+    private func setupCalendarData(for dateInYear: Date, using sleepInstruction: SleepInstruction) {
         guard let yearInterval = calendar.dateInterval(of: .year, for: dateInYear) else { return }
         
         // создаём весь год как последовательность Date
         let allDates = calendar.dates(from: yearInterval.start, through: yearInterval.end, adding: .day, value: 1)
+        
+        // для каждой даты добавляем утренний/вечерний сон
+        var combinedTasks = dailyTasks
+        for day in allDates {
+            let period = sleepInstruction.getPeriod(by: day.toKey())
+            let morning = TaskItem(title: "Утренний сон", startDate: day.at(0, 0), endDate: day.at(period.startHour, period.startMinute))
+            let evening = TaskItem(title: "Вечерний сон", startDate: day.at(period.endHour, period.endMinute), endDate: day.at(23, 59))
+            combinedTasks[day.toKey(), default: []].append(contentsOf: [morning, evening])
+        }
+        dailyTasks = combinedTasks
         
         // собираем месяцы
         monthsInYear = allDates
             .chunkedByMonth(calendar: calendar)
             .map { month in
                 let monthPadded = month.padded(toMultipleOf: 7, calendar: calendar)
-                let items = monthPadded.map { DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0] ?? []) }
+                let items = monthPadded.map { DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0?.toKey()] ?? []) }
                 return MonthItem(id: UUID(), dayItems: items)
             }
         
         // собираем недели
-        let weekPadded = allDates
+        weeksInYear = allDates
             .padded(toMultipleOf: 7, calendar: calendar)
-        
-        weeksInYear = weekPadded
             .chunked(into: 7)
             .map { weekDates in
-                let items = weekDates.map { DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0] ?? []) }
+                let items = weekDates.map {
+                    return DayItem(id: UUID(), date: $0, tasks: dailyTasks[$0?.toKey()] ?? [])
+                }
                 return WeekItem(id: UUID(), dayItems: items)
             }
     }
@@ -155,12 +171,12 @@ class CalendarViewModel: NSObject, ObservableObject {
             id: task.id,
             title: task.title,
             description: task.description,
+            startDate: date,
             endDate: date?.addingTimeInterval(3600),
             isCompleted: task.isCompleted,
             priority: task.priority,
             createdAt: task.createdAt,
             updatedAt: Date(),
-            startDate: date,
             isAllDay: task.isAllDay,
             travelTime: task.travelTime
         )
@@ -190,5 +206,33 @@ extension CalendarViewModel: NSFetchedResultsControllerDelegate {
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         loadTasks()
+    }
+}
+
+// MARK: — Структуры для сна
+
+/// Период сна (часы и минуты начала/конца)
+struct SleepPeriod {
+    let startHour: Int, startMinute: Int
+    let endHour:   Int, endMinute:   Int
+}
+
+/// Инструкция:
+///  • weekdayPeriod  — для будних
+///  • weekendPeriod  — для выходных
+///  • specialDates   — для конкретных дат (день → период)
+struct SleepInstruction {
+    let weekdayPeriod: SleepPeriod
+    let weekendPeriod: SleepPeriod
+    let specialDates:  [Date: SleepPeriod]
+    
+    func getPeriod(by date: Date) -> SleepPeriod {
+        if let special = specialDates[date] {
+            return special
+        } else if Calendar.current.isDateInWeekend(date) {
+            return weekendPeriod
+        } else {
+            return weekdayPeriod
+        }
     }
 }

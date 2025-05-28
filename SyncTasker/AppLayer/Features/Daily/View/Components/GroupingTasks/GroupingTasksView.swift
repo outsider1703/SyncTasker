@@ -30,9 +30,10 @@ struct GroupingTasksView: View {
     // MARK: - Body
     
     var body: some View {
-        let keys = Array(dailyTasks.keys)
-        ForEach(keys, id: \.self) { offset in
+        ForEach(Array(dailyTasks.keys), id: \.self) { offset in
+            
             if let tasks = dailyTasks[offset] {
+                
                 HStack(spacing: 4) {
                     ForEach(tasks, id: \.task.id) { dailyTask in
                         DailyTaskView(dailyTask: dailyTask)

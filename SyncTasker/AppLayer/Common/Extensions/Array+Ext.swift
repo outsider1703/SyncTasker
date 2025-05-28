@@ -7,6 +7,17 @@
 
 import Foundation
 
+extension Array {
+    
+    /// Разбивает по фиксированному размеру
+    func chunked(into size: Int) -> [[Element]] {
+        stride(from: 0, to: count, by: size).map {
+            let min = Swift.min($0 + size, count)
+            return Array(self[$0..<min])
+        }
+    }
+}
+
 extension Array where Element == DayItem {
     
     var firstDate: Date {
@@ -17,21 +28,10 @@ extension Array where Element == DayItem {
 extension Array where Element == TaskItem {
     
     func groupByDailyTasks() -> (dailyTasks: [Date: [TaskItem]], backlogTasks: [TaskItem]) {
-        let calendar = Calendar.current
-        
         let (withDate, withoutDate) = self.reduce(into: ([TaskItem](), [TaskItem]())) { result, task in
-            if task.startDate != nil {
-                result.0.append(task)
-            } else {
-                result.1.append(task)
-            }
+            task.startDate != nil ? result.0.append(task) : result.1.append(task)
         }
-        
-        let groupedDailyTasks = Dictionary(grouping: withDate) { task in
-            guard let date = task.startDate else { return Date() }
-            let components = calendar.dateComponents([.year, .month, .day], from: date)
-            return calendar.date(from: components) ?? date
-        }
+        let groupedDailyTasks = Dictionary(grouping: withDate) { $0.startDate!.toKey() }
         
         return (dailyTasks: groupedDailyTasks, backlogTasks: withoutDate)
     }
@@ -61,16 +61,5 @@ extension Array where Element == Date {
         let trailing = (targetSize - (result.count % targetSize)) % targetSize
         for _ in 0..<trailing { result.append(nil) }
         return result
-    }
-}
-
-extension Array {
-    
-    /// Разбивает по фиксированному размеру
-    func chunked(into size: Int) -> [[Element]] {
-        stride(from: 0, to: count, by: size).map {
-            let min = Swift.min($0 + size, count)
-            return Array(self[$0..<min])
-        }
     }
 }

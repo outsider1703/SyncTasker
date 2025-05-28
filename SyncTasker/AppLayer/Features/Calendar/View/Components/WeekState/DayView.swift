@@ -40,7 +40,7 @@ struct DayView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(dayItem.tasks ?? []) { task in
+                    ForEach(dayItem.tasks) { task in
                         TaskRowView(task: task)
                     }
                 }

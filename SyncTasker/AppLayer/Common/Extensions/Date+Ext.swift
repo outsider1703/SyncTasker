@@ -29,4 +29,16 @@ extension Date {
     func isToday() -> Bool {
         Calendar.current.isDate(self, inSameDayAs: Date())
     }
+    
+    // помощник для создания Date с нужным часом/минутой
+    func at(_ hour: Int, _ minute: Int) -> Date {
+        var components = Calendar.current.dateComponents([.year, .month, .day], from: self)
+        components.hour = hour
+        components.minute = minute
+        return Calendar.current.date(from: components)!
+    }
+    
+    func toKey() -> Date {
+        Calendar.current.startOfDay(for: self)
+    }
 }

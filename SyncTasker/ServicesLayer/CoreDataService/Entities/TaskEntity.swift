@@ -15,12 +15,12 @@ extension TaskEntity {
             id: id ?? UUID(),
             title: title ?? "",
             description: taskDescription,
+            startDate: startDate,
             endDate: endDate,
             isCompleted: isCompleted,
             priority: TaskItem.Priority(rawValue: Int(priority)) ?? .medium,
             createdAt: createdAt ?? Date(),
             updatedAt: updatedAt ?? Date(),
-            startDate: startDate,
             isAllDay: isAllDay,
             travelTime: travelTime
         )

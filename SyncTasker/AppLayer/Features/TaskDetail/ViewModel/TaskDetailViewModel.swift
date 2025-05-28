@@ -78,12 +78,12 @@ class TaskDetailViewModel: ObservableObject {
             id: existingTask?.id ?? UUID(),
             title: title,
             description: taskDescription,
+            startDate: startDate,
             endDate: endDate,
             isCompleted: isCompleted,
             priority: priority,
             createdAt: existingTask?.createdAt ?? Date(),
             updatedAt: Date(),
-            startDate: startDate,
             isAllDay: isAllDay,
             travelTime: calendar.date(byAdding: .minute, value: -travelTime.minutes, to: startDate ?? Date())
         )
@@ -100,12 +100,7 @@ class TaskDetailViewModel: ObservableObject {
 
     private func setTaskTimeForAllDay() {
         guard isAllDay else { return }
-        var components = calendar.dateComponents([.year, .month, .day], from: startDate ?? Date())
-        components.hour = 0
-        components.minute = 0
-        self.startDate = calendar.date(from: components)
-        components.hour = 23
-        components.minute = 59
-        self.endDate = calendar.date(from: components)
+        startDate = startDate?.at(0, 0)
+        endDate = startDate?.at(23, 59)
     }
 }
