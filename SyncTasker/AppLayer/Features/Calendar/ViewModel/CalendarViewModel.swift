@@ -116,15 +116,27 @@ class CalendarViewModel: NSObject, ObservableObject {
             let groupedTasks = tasks.groupByDailyTasks()
             dailyTasks = groupedTasks.dailyTasks
             backlogTasks = groupedTasks.backlogTasks
-            
-            setupCalendarData(for: Date(), using: SleepInstruction(
-                weekdayPeriod: SleepPeriod(startHour: 6, startMinute: 30, endHour: 21, endMinute: 00) ,
-                weekendPeriod: SleepPeriod(startHour: 10, startMinute: 00, endHour: 23, endMinute: 30) ,
-                specialDates: [Date().toKey() : SleepPeriod(startHour: 12, startMinute: 00, endHour: 19, endMinute: 00) ])
-            )
-            
+            let sleepInstruction = try getSleepInstruction()
+            setupCalendarData(for: Date(), using: sleepInstruction!)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+    
+    private func getSleepInstruction() throws -> SleepInstruction? {
+        if UserDefaults.standard.string(forKey: "userId") != nil {
+            return try coreDataService.fetchSleepInstructions()?.first
+        } else {
+            let userId = UUID()
+            UserDefaults.standard.setValue(userId.uuidString, forKey: "userId")
+            let defaultInstruction = SleepInstruction(
+                id: userId,
+                weekdayPeriod: SleepPeriod(startHour: 6, startMinute: 30, endHour: 21, endMinute: 00) ,
+                weekendPeriod: SleepPeriod(startHour: 10, startMinute: 00, endHour: 23, endMinute: 30) ,
+                specialDates: [Date().toKey() : SleepPeriod(startHour: 12, startMinute: 00, endHour: 19, endMinute: 00)])
+            
+            try coreDataService.createSleepInstruction(defaultInstruction)
+            return defaultInstruction
         }
     }
     
@@ -206,33 +218,5 @@ extension CalendarViewModel: NSFetchedResultsControllerDelegate {
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         loadTasks()
-    }
-}
-
-// MARK: — Структуры для сна
-
-/// Период сна (часы и минуты начала/конца)
-struct SleepPeriod {
-    let startHour: Int, startMinute: Int
-    let endHour:   Int, endMinute:   Int
-}
-
-/// Инструкция:
-///  • weekdayPeriod  — для будних
-///  • weekendPeriod  — для выходных
-///  • specialDates   — для конкретных дат (день → период)
-struct SleepInstruction {
-    let weekdayPeriod: SleepPeriod
-    let weekendPeriod: SleepPeriod
-    let specialDates:  [Date: SleepPeriod]
-    
-    func getPeriod(by date: Date) -> SleepPeriod {
-        if let special = specialDates[date] {
-            return special
-        } else if Calendar.current.isDateInWeekend(date) {
-            return weekendPeriod
-        } else {
-            return weekdayPeriod
-        }
     }
 }

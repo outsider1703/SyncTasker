@@ -10,11 +10,16 @@ import CloudKit
 
 protocol CoreDataServiceProtocol {
     var viewContext: NSManagedObjectContext { get }
+    func setupCloudSyncNotifications()
+
     func fetchTasks() throws -> [TaskEntity]?
     func createTask(_ task: TaskItem) throws
     func updateTask(_ task: TaskItem) throws
     func delete(_ task: TaskItem) throws
-    func setupCloudSyncNotifications()
+    
+    func fetchSleepInstructions() throws -> [SleepInstruction]?
+    func createSleepInstruction(_ item: SleepInstruction) throws
+    func updateSleepInstruction(_ item: SleepInstruction) throws
 }
 
 class CoreDataService: CoreDataServiceProtocol {
@@ -60,7 +65,12 @@ class CoreDataService: CoreDataServiceProtocol {
         )
     }
     
-    @objc private func managedObjectContextDidChange(notification: NSNotification) { try? saveContext() }
+    @objc private func managedObjectContextDidChange(notification: NSNotification) {
+        try? saveContext()
+    }
+}
+
+extension CoreDataService {
     
     // MARK: - Public Implementations
     
@@ -75,7 +85,7 @@ class CoreDataService: CoreDataServiceProtocol {
         taskEntity.update(from: task)
         try saveContext()
     }
-
+    
     func delete(_ task: TaskItem) throws {
         guard let taskEntity = try fetchTask(for: task.id) else { return }
         viewContext.delete(taskEntity)
@@ -96,9 +106,43 @@ class CoreDataService: CoreDataServiceProtocol {
         request.fetchLimit = 1
         return try viewContext.fetch(request).first
     }
-
+    
     private func saveContext() throws {
         guard viewContext.hasChanges else { return }
         try viewContext.save()
+    }
+}
+
+extension CoreDataService {
+    
+    // MARK: - Public Implementations
+    
+    func createSleepInstruction(_ item: SleepInstruction) throws {
+        let instructionEntity = SleepInstructionEntity(context: viewContext)
+        try instructionEntity.update(from: item)
+        try saveContext()
+    }
+    
+    func updateSleepInstruction(_ item: SleepInstruction) throws {
+        guard let instructionEntity = try fetchSleepInstructionEntity(for: item.id) else {
+            print("SleepInstruction with id \(item.id) not found for update.")
+            return
+        }
+        try instructionEntity.update(from: item)
+        try saveContext()
+    }
+    
+    func fetchSleepInstructions() throws -> [SleepInstruction]? {
+        let request = NSFetchRequest<SleepInstructionEntity>(entityName: "SleepInstructionEntity")
+        return try viewContext.fetch(request).map { try $0.toSleepInstruction() }
+    }
+    
+    // MARK: - Private Implementations
+    
+    private func fetchSleepInstructionEntity(for id: UUID) throws -> SleepInstructionEntity? {
+        let request = NSFetchRequest<SleepInstructionEntity>(entityName: "SleepInstructionEntity")
+        request.predicate = NSPredicate(format: "%K == %@", "id", id as CVarArg)
+        request.fetchLimit = 1
+        return try viewContext.fetch(request).first
     }
 }

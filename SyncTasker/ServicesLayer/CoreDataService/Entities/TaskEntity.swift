@@ -8,7 +8,6 @@
 import Foundation
 import CoreData
 
-// MARK: - Task Conversion
 extension TaskEntity {
     func toTask() -> TaskItem {
         TaskItem(

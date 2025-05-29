@@ -9,10 +9,13 @@ import SwiftUI
 
 @main
 struct SyncTaskerApp: App {
+    
     // MARK: - Properties
+    
     private let container = DIContainer.shared
     
     // MARK: - Body
+    
     var body: some Scene {
         WindowGroup {
             RootView(container: container)
