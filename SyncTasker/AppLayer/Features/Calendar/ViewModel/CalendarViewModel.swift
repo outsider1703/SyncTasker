@@ -138,8 +138,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         var combinedTasks = dailyTasks
         for day in allDates {
             let period = sleepInstruction.getPeriod(by: day.toKey())
-            let morning = TaskItem(title: "Утренний сон", startDate: day.at(0, 0), endDate: day.at(period.startHour, period.startMinute))
-            let evening = TaskItem(title: "Вечерний сон", startDate: day.at(period.endHour, period.endMinute), endDate: day.at(23, 59))
+            let morning = TaskItem(title: "sleep", startDate: day.at(0, 0), endDate: day.at(period.startHour, period.startMinute))
+            let evening = TaskItem(title: "sleep", startDate: day.at(period.endHour, period.endMinute), endDate: day.at(23, 59))
             combinedTasks[day.toKey(), default: []].append(contentsOf: [morning, evening])
         }
         dailyTasks = combinedTasks

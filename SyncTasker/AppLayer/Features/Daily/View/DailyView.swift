@@ -36,9 +36,12 @@ struct DailyView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .topLeading) {
                         hourGrid
-                        GroupingTasksView(dailyTasks: viewModel.dailyTasks, geometry: geometry) { task in
-                            viewModel.navigateToTaskDetail(task)
-                        }
+                        GroupingTasksView(
+                            dailyTasks: viewModel.dailyTasks,
+                            geometry: geometry,
+                            onTaskTap: { viewModel.navigateToTaskDetail($0) },
+                            onSleepTap: {  }
+                        )
                     }
                 }
                 .frame(height: Constants.hourRowHeight * 24)

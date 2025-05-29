@@ -16,6 +16,13 @@ extension Array {
             return Array(self[$0..<min])
         }
     }
+    
+    /// Возвращает два массива: первый — те элементы, для которых predicate вернул true, второй — для которых false.
+    func partitioned(by predicate: (Element) -> Bool) -> (matches: [Element], nonMatches: [Element]) {
+        return reduce(into: ([Element](), [Element]())) { result, element in
+            predicate(element) ? result.0.append(element) : result.1.append(element)
+        }
+    }
 }
 
 extension Array where Element == DayItem {
