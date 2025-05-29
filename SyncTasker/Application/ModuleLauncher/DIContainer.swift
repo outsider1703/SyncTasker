@@ -12,17 +12,22 @@ import SwiftUI
 
 @MainActor
 class DIContainer {
+    
     // MARK: - Singleton
+    
     static let shared = DIContainer()
     
     // MARK: - Navigation
+    
     private(set) var navigationService: NavigationService!
-
+    
     // MARK: - Services
+    
     private(set) var coreDataService: CoreDataServiceProtocol
     private(set) var feedbackManager: FeedbackManager!
     
     // MARK: - Initialization
+    
     init(
         coreDataService: CoreDataServiceProtocol = CoreDataService.shared,
         feedbackManager: FeedbackManager = FeedbackManager.shared,
@@ -34,15 +39,16 @@ class DIContainer {
         if let route = initialRoute {
             route.isModal ? initialModalRoute = route : initialNavPath.append(route)
         }
-
+        
         self.navigationService = NavigationService(initialPath: initialNavPath, initialModal: initialModalRoute)
         self.coreDataService = coreDataService
         self.feedbackManager = feedbackManager
     }
     
     //MARK: - Factory Methods
+    
     func makeCalendarViewModel() -> CalendarViewModel {
-        return CalendarViewModel(
+        CalendarViewModel(
             coreDataService: coreDataService,
             navigationService: navigationService,
             feedbackManager: feedbackManager
@@ -50,7 +56,7 @@ class DIContainer {
     }
     
     func makeTaskDetailViewModel(task: TaskItem?) -> TaskDetailViewModel {
-        return TaskDetailViewModel(
+        TaskDetailViewModel(
             task: task,
             coreDataService: coreDataService,
             navigationService: navigationService
@@ -58,15 +64,21 @@ class DIContainer {
     }
     
     func makeDailyViewModel(dayItem: DayItem) -> DailyViewModel {
-        return DailyViewModel(
+        DailyViewModel(
             navigationService: navigationService,
             feedbackManager: feedbackManager,
             dayItem: dayItem
         )
     }
     
+    func makeSleepInstructionsViewModel() -> SleepInstructionsViewModel {
+        SleepInstructionsViewModel(
+            coreDataService: coreDataService
+        )
+    }
+    
     func makeFreeTimeViewModel(months: [MonthItem]) -> FreeTimeViewModel {
-        return FreeTimeViewModel(
+        FreeTimeViewModel(
             coreDataService: coreDataService,
             navigationService: navigationService,
             months: months

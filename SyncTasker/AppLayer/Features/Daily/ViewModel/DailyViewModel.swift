@@ -41,9 +41,13 @@ class DailyViewModel: ObservableObject {
         Task { await navigationService.navigate(to: .taskDetail(task)) }
     }
     
+    func navigateToSleepInstructions() {
+        Task { await navigationService.navigate(to: .sleepInstructaions) }
+    }
+    
     // MARK: - Private Methods
     
-    private func organizeTasksByHour() {        
+    private func organizeTasksByHour() {
         let taskFrameModel = dayItem.tasks.map { task in
             guard let startDate = task.startDate, let endDate = task.endDate else {
                 return DailyTask(task: task, offset: 0, height: 0)
@@ -55,7 +59,7 @@ class DailyViewModel: ObservableObject {
             
             return DailyTask(task: task, offset: CGFloat(startTime), height: CGFloat(duration))
         }
-
+        
         dailyTasks = Dictionary(grouping: taskFrameModel) { $0.offset }
     }
 }

@@ -11,7 +11,7 @@ struct WeekView: View {
     
     // MARK: - Initial Private Properties
     
-    @State private var weekIndex: Int
+    @Binding private var weekIndex: Int
     @Binding private var isBacklogOpen: Bool
     @Binding private var calendarViewType: CalendarViewType
     private let weeks: [WeekItem]
@@ -23,7 +23,7 @@ struct WeekView: View {
     // MARK: - Initialization
     
     init(
-        weekIndex: Int,
+        weekIndex: Binding<Int>,
         isBacklogOpen: Binding<Bool>,
         calendarViewType: Binding<CalendarViewType>,
         weeks: [WeekItem],
@@ -32,7 +32,7 @@ struct WeekView: View {
         routeToFreeTimes: @escaping () -> Void,
         routeToTaskDetails: @escaping () -> Void
     ) {
-        self._weekIndex = State(initialValue: weekIndex)
+        self._weekIndex = weekIndex
         self._isBacklogOpen = isBacklogOpen
         self._calendarViewType = calendarViewType
         self.weeks = weeks

@@ -26,7 +26,7 @@ struct CalendarView: View {
             switch viewModel.calendarViewType {
             case .month:
                 WeekView(
-                    weekIndex: viewModel.weekIndex,
+                    weekIndex: $viewModel.weekIndex,
                     isBacklogOpen: $viewModel.isBacklogOpen,
                     calendarViewType: $viewModel.calendarViewType,
                     weeks: viewModel.weeksInYear,

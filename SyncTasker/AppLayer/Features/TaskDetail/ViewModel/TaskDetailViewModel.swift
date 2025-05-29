@@ -89,7 +89,7 @@ class TaskDetailViewModel: ObservableObject {
         )
         
         do {
-            isEditMode ? try coreDataService.updateTask(task) : try coreDataService.createTask(task)
+            await isEditMode ? try coreDataService.updateTask(task) : try coreDataService.createTask(task)
             await dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -100,7 +100,7 @@ class TaskDetailViewModel: ObservableObject {
 
     private func setTaskTimeForAllDay() {
         guard isAllDay else { return }
-        startDate = startDate?.at(0, 0)
-        endDate = startDate?.at(23, 59)
+        startDate = startDate?.startTime()
+        endDate = startDate?.endTime()
     }
 }

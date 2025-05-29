@@ -40,7 +40,7 @@ struct DailyView: View {
                             dailyTasks: viewModel.dailyTasks,
                             geometry: geometry,
                             onTaskTap: { viewModel.navigateToTaskDetail($0) },
-                            onSleepTap: {  }
+                            onSleepTap: { viewModel.navigateToSleepInstructions() }
                         )
                     }
                 }
@@ -53,7 +53,7 @@ struct DailyView: View {
     }
     
     // MARK: - Subviews
-
+    
     private var hourGrid: some View {
         VStack(spacing: 0) {
             ForEach(0..<24) { hour in

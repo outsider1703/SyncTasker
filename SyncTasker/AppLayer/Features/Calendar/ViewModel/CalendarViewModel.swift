@@ -8,6 +8,7 @@
 import Foundation
 import CoreData
 
+@MainActor
 class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Injections
@@ -66,8 +67,10 @@ class CalendarViewModel: NSObject, ObservableObject {
         super.init()
         
         self.fetchController.delegate = self
-        self.loadTasks()
-        self.setupWeekIndex(for: monthsInYear.first(where: { $0.isCurrentMonth }))
+        Task {
+            await self.loadTasks()
+            self.setupWeekIndex(for: monthsInYear.first(where: { $0.isCurrentMonth }))
+        }
     }
     
     // MARK: - Navigation Methods
@@ -87,12 +90,12 @@ class CalendarViewModel: NSObject, ObservableObject {
     // MARK: - Public Methods
     
     func updateTaskDate(task: UUID, to date: Date?) {
-        update(for: task, and: date)
+        Task { await update(for: task, and: date) }
     }
     
-    func deleteTask(_ task: TaskItem) {
+    func deleteTask(_ task: TaskItem) async {
         do {
-            try coreDataService.delete(task)
+            try await coreDataService.delete(task)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -109,23 +112,25 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Private Methods
     
-    private func loadTasks() {
+    private func loadTasks() async {
         do {
             try fetchController.performFetch()
             tasks = (fetchController.fetchedObjects ?? []).map { $0.toTask() }
             let groupedTasks = tasks.groupByDailyTasks()
             dailyTasks = groupedTasks.dailyTasks
             backlogTasks = groupedTasks.backlogTasks
-            let sleepInstruction = try getSleepInstruction()
-            setupCalendarData(for: Date(), using: sleepInstruction!)
+            
+            if let sleepInstruction = try await getSleepInstruction() {
+                setupCalendarData(for: Date(), using: sleepInstruction)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
     
-    private func getSleepInstruction() throws -> SleepInstruction? {
+    private func getSleepInstruction() async throws -> SleepInstruction? {
         if UserDefaults.standard.string(forKey: "userId") != nil {
-            return try coreDataService.fetchSleepInstructions()?.first
+            return try await coreDataService.fetchSleepInstructions()?.first
         } else {
             let userId = UUID()
             UserDefaults.standard.setValue(userId.uuidString, forKey: "userId")
@@ -135,7 +140,7 @@ class CalendarViewModel: NSObject, ObservableObject {
                 weekendPeriod: SleepPeriod(startHour: 10, startMinute: 00, endHour: 23, endMinute: 30) ,
                 specialDates: [Date().toKey() : SleepPeriod(startHour: 12, startMinute: 00, endHour: 19, endMinute: 00)])
             
-            try coreDataService.createSleepInstruction(defaultInstruction)
+            try await coreDataService.createSleepInstruction(defaultInstruction)
             return defaultInstruction
         }
     }
@@ -150,8 +155,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         var combinedTasks = dailyTasks
         for day in allDates {
             let period = sleepInstruction.getPeriod(by: day.toKey())
-            let morning = TaskItem(title: "sleep", startDate: day.at(0, 0), endDate: day.at(period.startHour, period.startMinute))
-            let evening = TaskItem(title: "sleep", startDate: day.at(period.endHour, period.endMinute), endDate: day.at(23, 59))
+            let morning = TaskItem(title: "sleep", startDate: day.startTime(), endDate: day.at(period.startHour, period.startMinute))
+            let evening = TaskItem(title: "sleep", startDate: day.at(period.endHour, period.endMinute), endDate: day.endTime())
             combinedTasks[day.toKey(), default: []].append(contentsOf: [morning, evening])
         }
         dailyTasks = combinedTasks
@@ -177,7 +182,7 @@ class CalendarViewModel: NSObject, ObservableObject {
             }
     }
     
-    private func update(for taskId: UUID, and date: Date?) {
+    private func update(for taskId: UUID, and date: Date?) async {
         guard let task = tasks.first(where: { $0.id == taskId }) else { return }
         let updatedTask = TaskItem(
             id: task.id,
@@ -194,7 +199,7 @@ class CalendarViewModel: NSObject, ObservableObject {
         )
         
         do {
-            try coreDataService.updateTask(updatedTask)
+            try await coreDataService.updateTask(updatedTask)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -216,7 +221,9 @@ class CalendarViewModel: NSObject, ObservableObject {
 
 extension CalendarViewModel: NSFetchedResultsControllerDelegate {
     
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        loadTasks()
+    nonisolated func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        Task { @MainActor in
+            await loadTasks()
+        }
     }
 }

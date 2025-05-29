@@ -28,6 +28,7 @@ struct RootView: View {
                 }
                 .sheet(item: $navigationService.presentedModal) { route in
                     makeView(for: route)
+                        .presentationDetents([.medium, .large])
                 }
         }
     }
@@ -43,22 +44,8 @@ struct RootView: View {
             DailyView(viewModel: container.makeDailyViewModel(dayItem: dayItem))
         case .freeTime(let daysInYear):
             FreeTimeView(viewModel: container.makeFreeTimeViewModel(months: daysInYear))
+        case .sleepInstructaions:
+            SleepInstructaionsView(viewModel: container.makeSleepInstructionsViewModel())
         }
     }
 }
-//
-//struct RootView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        NavigationStack(path: $navigationService.path) {
-//            CalendarView(viewModel: container.makeCalendarViewModel())
-//                .navigationDestination(for: Route.self) { route in
-//                    if !route.isModal {
-//                        makeView(for: route)
-//                    }
-//                }
-//                .sheet(item: $navigationService.presentedModal) { route in
-//                    makeView(for: route)
-//                }
-//        }
-//    }
-//}

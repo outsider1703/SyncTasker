@@ -38,6 +38,14 @@ extension Date {
         return Calendar.current.date(from: components)!
     }
     
+    func startTime() -> Date {
+        self.at(0, 0)
+    }
+    
+    func endTime() -> Date {
+        self.at(23, 59)
+    }
+    
     func toKey() -> Date {
         Calendar.current.startOfDay(for: self)
     }
