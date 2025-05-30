@@ -9,7 +9,7 @@ import Foundation
 
 /// Период сна (часы и минуты начала/конца)
 struct SleepPeriod: Codable {
-    let startHour: Int, startMinute: Int
-    let endHour:   Int, endMinute:   Int
+    let startSleepTeme: Int
+    let endSleepTime: Int
 }
 

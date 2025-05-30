@@ -30,8 +30,10 @@ extension Date {
         Calendar.current.isDate(self, inSameDayAs: Date())
     }
     
-    // помощник для создания Date с нужным часом/минутой
-    func at(_ hour: Int, _ minute: Int) -> Date {
+    // помощник для создания Date с нужным временем в минутах от начала дня
+    func at(_ totalMinutes: Int) -> Date {
+        let hour = totalMinutes / 60
+        let minute = totalMinutes % 60
         var components = Calendar.current.dateComponents([.year, .month, .day], from: self)
         components.hour = hour
         components.minute = minute
@@ -39,11 +41,11 @@ extension Date {
     }
     
     func startTime() -> Date {
-        self.at(0, 0)
+        self.at(0)
     }
     
     func endTime() -> Date {
-        self.at(23, 59)
+        self.at(23 * 60 + 59)
     }
     
     func toKey() -> Date {

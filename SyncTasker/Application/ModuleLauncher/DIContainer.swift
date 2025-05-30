@@ -25,12 +25,14 @@ class DIContainer {
     
     private(set) var coreDataService: CoreDataServiceProtocol
     private(set) var feedbackManager: FeedbackManager!
-    
+    private(set) var sleepInstructionUpdateService: SleepInstructionUpdateServiceProtocol
+
     // MARK: - Initialization
     
     init(
         coreDataService: CoreDataServiceProtocol = CoreDataService.shared,
         feedbackManager: FeedbackManager = FeedbackManager.shared,
+        sleepInstructionUpdateService: SleepInstructionUpdateServiceProtocol = SleepInstructionUpdateService(),
         initialRoute: Route? = nil
     ) {
         var initialNavPath = NavigationPath()
@@ -43,6 +45,7 @@ class DIContainer {
         self.navigationService = NavigationService(initialPath: initialNavPath, initialModal: initialModalRoute)
         self.coreDataService = coreDataService
         self.feedbackManager = feedbackManager
+        self.sleepInstructionUpdateService = sleepInstructionUpdateService
     }
     
     //MARK: - Factory Methods
@@ -51,7 +54,8 @@ class DIContainer {
         CalendarViewModel(
             coreDataService: coreDataService,
             navigationService: navigationService,
-            feedbackManager: feedbackManager
+            feedbackManager: feedbackManager,
+            sleepInstructionUpdateService: sleepInstructionUpdateService
         )
     }
     
@@ -73,7 +77,8 @@ class DIContainer {
     
     func makeSleepInstructionsViewModel() -> SleepInstructionsViewModel {
         SleepInstructionsViewModel(
-            coreDataService: coreDataService
+            coreDataService: coreDataService,
+            sleepInstructionUpdateService: sleepInstructionUpdateService
         )
     }
     

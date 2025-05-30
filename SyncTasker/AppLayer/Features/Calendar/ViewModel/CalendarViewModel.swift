@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import Combine
 
 @MainActor
 class CalendarViewModel: NSObject, ObservableObject {
@@ -17,7 +18,8 @@ class CalendarViewModel: NSObject, ObservableObject {
     private let fetchController: NSFetchedResultsController<TaskEntity>
     private let navigationService: NavigationServiceProtocol
     private let feedbackManager: FeedbackManager
-    
+    private let sleepInstructionUpdateService: SleepInstructionUpdateServiceProtocol
+
     // MARK: - Published Properties
     
     @Published var tasks: [TaskItem] = []
@@ -42,18 +44,21 @@ class CalendarViewModel: NSObject, ObservableObject {
     private let calendar = Calendar.current
     private var dailyTasks: [Date?: [TaskItem]] = [:]
     private var backlogTasks: [TaskItem] = []
-    
+    private var cancellables = Set<AnyCancellable>()
+
     // MARK: - Initialization
     
     init(
         coreDataService: CoreDataServiceProtocol,
         navigationService: NavigationServiceProtocol,
-        feedbackManager: FeedbackManager
+        feedbackManager: FeedbackManager,
+        sleepInstructionUpdateService: SleepInstructionUpdateServiceProtocol
     ) {
         self.coreDataService = coreDataService
         self.navigationService = navigationService
         self.feedbackManager = feedbackManager
-        
+        self.sleepInstructionUpdateService = sleepInstructionUpdateService
+
         let request: NSFetchRequest<TaskEntity> = TaskEntity.fetchRequest()
         request.sortDescriptors = [NSSortDescriptor(keyPath: \TaskEntity.createdAt, ascending: true)]
         
@@ -71,6 +76,7 @@ class CalendarViewModel: NSObject, ObservableObject {
             await self.loadTasks()
             self.setupWeekIndex(for: monthsInYear.first(where: { $0.isCurrentMonth }))
         }
+        subscribeToSleepInstructionUpdates()
     }
     
     // MARK: - Navigation Methods
@@ -112,6 +118,17 @@ class CalendarViewModel: NSObject, ObservableObject {
     
     // MARK: - Private Methods
     
+    private func subscribeToSleepInstructionUpdates() {
+        sleepInstructionUpdateService.updatePublisher
+            .sink { [weak self] in
+                guard let self else { return }
+                Task {
+                    await self.loadTasks()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     private func loadTasks() async {
         do {
             try fetchController.performFetch()
@@ -136,9 +153,9 @@ class CalendarViewModel: NSObject, ObservableObject {
             UserDefaults.standard.setValue(userId.uuidString, forKey: "userId")
             let defaultInstruction = SleepInstruction(
                 id: userId,
-                weekdayPeriod: SleepPeriod(startHour: 6, startMinute: 30, endHour: 21, endMinute: 00) ,
-                weekendPeriod: SleepPeriod(startHour: 10, startMinute: 00, endHour: 23, endMinute: 30) ,
-                specialDates: [Date().toKey() : SleepPeriod(startHour: 12, startMinute: 00, endHour: 19, endMinute: 00)])
+                weekdayPeriod: SleepPeriod(startSleepTeme: 390, endSleepTime: 1200) ,
+                weekendPeriod: SleepPeriod(startSleepTeme: 600, endSleepTime: 1340) ,
+                specialDates: [Date().toKey() : SleepPeriod(startSleepTeme: 720, endSleepTime: 1000)])
             
             try await coreDataService.createSleepInstruction(defaultInstruction)
             return defaultInstruction
@@ -155,8 +172,8 @@ class CalendarViewModel: NSObject, ObservableObject {
         var combinedTasks = dailyTasks
         for day in allDates {
             let period = sleepInstruction.getPeriod(by: day.toKey())
-            let morning = TaskItem(title: "sleep", startDate: day.startTime(), endDate: day.at(period.startHour, period.startMinute))
-            let evening = TaskItem(title: "sleep", startDate: day.at(period.endHour, period.endMinute), endDate: day.endTime())
+            let morning = TaskItem(title: "sleep", startDate: day.startTime(), endDate: day.at(period.startSleepTeme))
+            let evening = TaskItem(title: "sleep", startDate: day.at(period.endSleepTime), endDate: day.endTime())
             combinedTasks[day.toKey(), default: []].append(contentsOf: [morning, evening])
         }
         dailyTasks = combinedTasks

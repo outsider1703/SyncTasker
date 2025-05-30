@@ -24,16 +24,12 @@ extension SleepInstructionEntity {
         }
         
         let weekdayPeriod = SleepPeriod(
-            startHour: Int(self.weekdayStartHour),
-            startMinute: Int(self.weekdayStartMinute),
-            endHour: Int(self.weekdayEndHour),
-            endMinute: Int(self.weekdayEndMinute)
+            startSleepTeme: Int(self.weekdayStartSleepTime),
+            endSleepTime: Int(self.weekdayEndSleepTime)
         )
         let weekendPeriod = SleepPeriod(
-            startHour: Int(self.weekendStartHour),
-            startMinute: Int(self.weekendStartMinute),
-            endHour: Int(self.weekendEndHour),
-            endMinute: Int(self.weekendEndMinute)
+            startSleepTeme: Int(self.weekendStartSleepTime),
+            endSleepTime: Int(self.weekendEndSleepTime)
         )
         
         return SleepInstruction(
@@ -47,15 +43,10 @@ extension SleepInstructionEntity {
     func update(from record: SleepInstruction) throws {
         self.id = record.id
         
-        self.weekdayStartHour = Int16(record.weekdayPeriod.startHour)
-        self.weekdayStartMinute = Int16(record.weekdayPeriod.startMinute)
-        self.weekdayEndHour = Int16(record.weekdayPeriod.endHour)
-        self.weekdayEndMinute = Int16(record.weekdayPeriod.endMinute)
-        
-        self.weekendStartHour = Int16(record.weekendPeriod.startHour)
-        self.weekendStartMinute = Int16(record.weekendPeriod.startMinute)
-        self.weekendEndHour = Int16(record.weekendPeriod.endHour)
-        self.weekendEndMinute = Int16(record.weekendPeriod.endMinute)
+        self.weekdayStartSleepTime = Int32(record.weekdayPeriod.startSleepTeme)
+        self.weekdayEndSleepTime = Int32(record.weekdayPeriod.endSleepTime)
+        self.weekendStartSleepTime = Int32(record.weekendPeriod.startSleepTeme)
+        self.weekendEndSleepTime = Int32(record.weekendPeriod.endSleepTime)
         
         let encoder = JSONEncoder()
         var specialDatesStringKey: [String: SleepPeriod] = [:]
